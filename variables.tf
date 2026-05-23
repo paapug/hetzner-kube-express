@@ -1,19 +1,18 @@
 variable "hcloud_token" {
   type        = string
-  description = "Hetzner Cloud API token (Read & Write). Set via SOPS secrets.enc.json (make plan) or TF_VAR_hcloud_token."
+  description = "Hetzner Cloud API token (Read & Write). Set in SOPS secrets.enc.json."
   sensitive   = true
 }
 
-variable "ssh_public_key_path" {
+variable "ssh_public_key" {
   type        = string
-  description = "Path to SSH public key registered with Hetzner / used for node access."
-  default     = "~/.ssh/id_ed25519.pub"
+  description = "SSH public key content for Hetzner and cluster nodes. Set in SOPS secrets.enc.json."
 }
 
-variable "ssh_private_key_path" {
+variable "ssh_private_key" {
   type        = string
-  description = "Path to SSH private key (use null with ssh-agent if preferred)."
-  default     = "~/.ssh/id_ed25519"
+  description = "SSH private key content for Terraform provisioning. Set in SOPS secrets.enc.json."
+  sensitive   = true
 }
 
 variable "firewall_ssh_source" {

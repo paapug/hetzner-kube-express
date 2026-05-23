@@ -1,8 +1,9 @@
 # Prefer SOPS (encrypted secrets in git):
 #
 #   brew install age sops
-#   make sops-setup          # creates .age/key.txt + secrets.enc.json
+#   make sops-setup          # age key, cluster ed25519 SSH key, secrets.enc.json
 #   make secrets-edit        # set hcloud_token, firewall CIDRs, etc.
+#   make ssh-export          # write .age/cluster_ed25519 from SOPS for ssh(1)
 #   make plan && make apply
 #
 # Plaintext fallback (gitignored):

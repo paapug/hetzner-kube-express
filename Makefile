@@ -2,11 +2,14 @@
 export SOPS_AGE_KEY_FILE ?= $(CURDIR)/.age/key.txt
 SECRETS_ENC := $(CURDIR)/secrets.enc.json
 
-.PHONY: sops-setup secrets-edit init plan apply destroy output fmt validate
+.PHONY: sops-setup secrets-edit ssh-export init plan apply destroy output fmt validate
 
 sops-setup:
-	@chmod +x scripts/sops-setup.sh scripts/tf-sops.sh
+	@chmod +x scripts/sops-setup.sh scripts/tf-sops.sh scripts/export-ssh-key.sh
 	@./scripts/sops-setup.sh
+
+ssh-export:
+	@./scripts/export-ssh-key.sh
 
 secrets-edit:
 	@test -f "$(SECRETS_ENC)" || (echo "Run: make sops-setup" >&2; exit 1)

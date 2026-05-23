@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# One-time (or per-machine) setup: age key + encrypted secrets.enc.json
+# One-time (or per-machine) setup: age key, cluster SSH key, encrypted secrets.enc.json
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 AGE_KEY="${SOPS_AGE_KEY_FILE:-$ROOT/.age/key.txt}"
+SSH_KEY="${SSH_KEY:-$ROOT/.age/cluster_ed25519}"
 SECRETS_PLAIN="${SECRETS_PLAIN:-$ROOT/secrets.json}"
 SECRETS_ENC="$ROOT/secrets.enc.json"
 SOPS_CONFIG="$ROOT/.sops.yaml"
@@ -20,6 +21,12 @@ require_cmd() {
       sops)
         echo "  Install: brew install sops" >&2
         ;;
+      jq)
+        echo "  Install: brew install jq" >&2
+        ;;
+      ssh-keygen)
+        echo "  Install: openssh client (ssh-keygen)" >&2
+        ;;
     esac
     exit 1
   fi
@@ -27,6 +34,8 @@ require_cmd() {
 
 require_cmd sops
 require_cmd age-keygen
+require_cmd jq
+require_cmd ssh-keygen
 
 mkdir -p "$(dirname "$AGE_KEY")"
 
@@ -42,8 +51,6 @@ if [[ -z "$PUBKEY" ]]; then
   exit 1
 fi
 
-# Update .sops.yaml with this machine's public key (safe to commit for solo use;
-# for teams, add multiple age: lines or run setup once and commit the result).
 if grep -q 'REPLACE_WITH_PUBLIC_KEY' "$SOPS_CONFIG" 2>/dev/null; then
   sed "s/REPLACE_WITH_PUBLIC_KEY/${PUBKEY}/" "$SOPS_CONFIG" > "${SOPS_CONFIG}.tmp"
   mv "${SOPS_CONFIG}.tmp" "$SOPS_CONFIG"
@@ -56,16 +63,38 @@ fi
 
 if [[ ! -f "$SECRETS_PLAIN" ]]; then
   cp "$ROOT/secrets.example.json" "$SECRETS_PLAIN"
-  echo "Created $SECRETS_PLAIN — edit it, then re-run: make sops-setup"
+  echo "Created $SECRETS_PLAIN — set hcloud_token, then re-run: make sops-setup"
   exit 0
 fi
 
+if [[ ! -f "$SSH_KEY" ]]; then
+  echo "Generating cluster SSH key: ${SSH_KEY}"
+  ssh-keygen -t ed25519 -f "$SSH_KEY" -N "" -C "k8s-playground-dev" >/dev/null
+  chmod 600 "$SSH_KEY"
+  chmod 644 "${SSH_KEY}.pub"
+fi
+
+# Merge SSH key material into secrets.json (preserves existing hcloud_token, firewall, etc.)
+TMP="$(mktemp)"
+jq \
+  --arg pub "$(cat "${SSH_KEY}.pub")" \
+  --arg priv "$(cat "$SSH_KEY")" \
+  '.ssh_public_key = $pub | .ssh_private_key = $priv' \
+  "$SECRETS_PLAIN" > "$TMP"
+mv "$TMP" "$SECRETS_PLAIN"
+
 cp "$SECRETS_PLAIN" "$SECRETS_ENC"
 SOPS_AGE_KEY_FILE="$AGE_KEY" sops --encrypt --input-type json --output-type json --in-place "$SECRETS_ENC"
-echo "Wrote encrypted $SECRETS_ENC (safe to commit; keep $SECRETS_PLAIN out of git)"
+echo "Wrote encrypted $SECRETS_ENC (includes cluster SSH key; keep $SECRETS_PLAIN out of git)"
 
+echo ""
+echo "Cluster SSH public key fingerprint:"
+ssh-keygen -lf "${SSH_KEY}.pub"
+echo ""
+echo "Local key files (gitignored): ${SSH_KEY}{,.pub}"
+echo "  ssh -i ${SSH_KEY} root@<node-ip>"
 echo ""
 echo "Done. Use:  export SOPS_AGE_KEY_FILE=$AGE_KEY"
 echo "            make plan   # or make apply"
 echo ""
-echo "Edit secrets:  make secrets-edit   (opens secrets.enc.json in \$EDITOR)"
+echo "Edit secrets:  make secrets-edit"

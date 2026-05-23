@@ -11,8 +11,8 @@ module "kube-hetzner" {
 
   hcloud_token = var.hcloud_token
 
-  ssh_public_key  = file(pathexpand(var.ssh_public_key_path))
-  ssh_private_key = file(pathexpand(var.ssh_private_key_path))
+  ssh_public_key  = var.ssh_public_key
+  ssh_private_key = var.ssh_private_key
 
   cluster_name   = "k8s-playground-dev"
   network_region = "eu-central"
