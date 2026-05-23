@@ -1,0 +1,3 @@
+[submodule ".vendor/terraform-hcloud-kube-hetzner"]
+	path = .vendor/terraform-hcloud-kube-hetzner
+	url = https://github.com/mysticaltech/terraform-hcloud-kube-hetzner.git
