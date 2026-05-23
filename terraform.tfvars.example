@@ -1,0 +1,11 @@
+# Prefer SOPS (encrypted secrets in git):
+#
+#   brew install age sops
+#   make sops-setup          # creates .age/key.txt + secrets.enc.json
+#   make secrets-edit        # set hcloud_token, firewall CIDRs, etc.
+#   make plan && make apply
+#
+# Plaintext fallback (gitignored):
+#   cp terraform.tfvars.example terraform.tfvars   # not used — see secrets.example.json
+#   export TF_VAR_hcloud_token=...
+#   terraform apply

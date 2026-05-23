@@ -1,0 +1,13 @@
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+secrets.json
+.age/
+kubeconfig.yaml
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
