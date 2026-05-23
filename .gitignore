@@ -3,8 +3,13 @@
 *.tfstate
 *.tfstate.*
 terraform.tfvars
-secrets.json
-.age/
+
+# Ansible Vault passphrase (the only thing teammates need to obtain out-of-band)
+.vault_pass
+
+# Cluster SSH key restored from the vault for local ssh/scp
+.cluster_ssh/
+
 kubeconfig.yaml
 crash.log
 override.tf

@@ -1,12 +1,14 @@
-# Prefer SOPS (encrypted secrets in git):
+# Variables are stored encrypted in secrets.vault.json (Ansible Vault).
 #
-#   brew install age sops
-#   make sops-setup          # age key, cluster ed25519 SSH key, secrets.enc.json
-#   make secrets-edit        # set hcloud_token, firewall CIDRs, etc.
-#   make ssh-export          # write .age/cluster_ed25519 from SOPS for ssh(1)
-#   make plan && make apply
+# First-time setup (creates passphrase, cluster SSH key, encrypted vars):
+#   make vault-setup
 #
-# Plaintext fallback (gitignored):
-#   cp terraform.tfvars.example terraform.tfvars   # not used — see secrets.example.json
-#   export TF_VAR_hcloud_token=...
-#   terraform apply
+# Day-to-day:
+#   make plan
+#   make apply
+#   make secrets-edit         # edit secrets.vault.json with $EDITOR
+#   make secrets-view         # print decrypted JSON to stdout
+#   make ssh-export           # restore .cluster_ssh/cluster_ed25519 on a new machine
+#
+# Sharing with a teammate: send them the vault passphrase via 1Password / Bitwarden.
+# They clone the repo, write the passphrase to .vault_pass (mode 600), and run `make plan`.

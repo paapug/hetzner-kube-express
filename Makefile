@@ -1,19 +1,26 @@
-# Terraform via SOPS-encrypted secrets.enc.json (see secrets.example.json).
-export SOPS_AGE_KEY_FILE ?= $(CURDIR)/.age/key.txt
-SECRETS_ENC := $(CURDIR)/secrets.enc.json
+# Terraform with Ansible-Vault-encrypted secrets.vault.json.
+#
+# Commit:        secrets.vault.json
+# Don't commit:  .vault_pass, .cluster_ssh/
+# Share with team: the vault passphrase (e.g. via 1Password)
 
-.PHONY: sops-setup secrets-edit ssh-export init plan apply destroy output fmt validate
+VAULT_FILE := $(CURDIR)/secrets.vault.json
+VAULT_PASS := $(CURDIR)/.vault_pass
 
-sops-setup:
-	@chmod +x scripts/sops-setup.sh scripts/tf-sops.sh scripts/export-ssh-key.sh
-	@./scripts/sops-setup.sh
+.PHONY: vault-setup secrets-edit secrets-view ssh-export init plan apply destroy output fmt validate
 
-ssh-export:
+vault-setup:
+	@chmod +x scripts/vault-setup.sh scripts/tf-vault.sh scripts/export-ssh-key.sh
+	@./scripts/vault-setup.sh
+
+secrets-edit: $(VAULT_FILE) $(VAULT_PASS)
+	ansible-vault edit --vault-password-file $(VAULT_PASS) $(VAULT_FILE)
+
+secrets-view: $(VAULT_FILE) $(VAULT_PASS)
+	@ansible-vault view --vault-password-file $(VAULT_PASS) $(VAULT_FILE)
+
+ssh-export: $(VAULT_FILE) $(VAULT_PASS)
 	@./scripts/export-ssh-key.sh
-
-secrets-edit:
-	@test -f "$(SECRETS_ENC)" || (echo "Run: make sops-setup" >&2; exit 1)
-	sops "$(SECRETS_ENC)"
 
 init:
 	terraform init
@@ -24,18 +31,23 @@ fmt:
 validate:
 	terraform validate
 
-plan: $(SECRETS_ENC)
-	@./scripts/tf-sops.sh plan
+plan: $(VAULT_FILE) $(VAULT_PASS)
+	@./scripts/tf-vault.sh plan
 
-apply: $(SECRETS_ENC)
-	@./scripts/tf-sops.sh apply
+apply: $(VAULT_FILE) $(VAULT_PASS)
+	@./scripts/tf-vault.sh apply
 
-destroy: $(SECRETS_ENC)
-	@./scripts/tf-sops.sh destroy
+destroy: $(VAULT_FILE) $(VAULT_PASS)
+	@./scripts/tf-vault.sh destroy
 
-output: $(SECRETS_ENC)
-	@./scripts/tf-sops.sh output
+output: $(VAULT_FILE) $(VAULT_PASS)
+	@./scripts/tf-vault.sh output
 
-$(SECRETS_ENC):
-	@echo "error: $(SECRETS_ENC) missing. Run: make sops-setup" >&2
+$(VAULT_FILE):
+	@echo "error: $(VAULT_FILE) missing. Run: make vault-setup" >&2
+	@exit 1
+
+$(VAULT_PASS):
+	@echo "error: $(VAULT_PASS) missing." >&2
+	@echo "  Create it (mode 600) with the shared passphrase, or run: make vault-setup" >&2
 	@exit 1

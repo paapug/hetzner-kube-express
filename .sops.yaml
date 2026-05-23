@@ -1,5 +1,0 @@
-# Age public key is written by: make sops-setup
-# (Only the public key belongs in git; private key lives in .age/key.txt)
-creation_rules:
-  - path_regex: \.enc\.json$
-    age: age1y6ewl4vumxd99at9rrqazvff35xjy0p6uthx2vlkz830ddrtrgwqyc283n

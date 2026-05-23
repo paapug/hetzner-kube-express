@@ -1,26 +1,34 @@
 #!/usr/bin/env bash
-# Write cluster SSH key from SOPS to .age/ for ssh(1) / scp on this machine.
+# Restore cluster SSH key files from secrets.vault.json (for use on a new machine).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SECRETS_ENC="${SECRETS_ENC:-$ROOT/secrets.enc.json}"
-SSH_KEY="${SSH_KEY:-$ROOT/.age/cluster_ed25519}"
-export SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$ROOT/.age/key.txt}"
+cd "$ROOT"
 
-if [[ ! -f "$SECRETS_ENC" ]]; then
-  echo "error: $SECRETS_ENC not found. Run: make sops-setup" >&2
+VAULT_FILE="${VAULT_FILE:-$ROOT/secrets.vault.json}"
+VAULT_PASS_FILE="${VAULT_PASSWORD_FILE:-$ROOT/.vault_pass}"
+SSH_KEY="${SSH_KEY:-$ROOT/.cluster_ssh/cluster_ed25519}"
+
+if [[ ! -f "$VAULT_FILE" ]]; then
+  echo "error: $VAULT_FILE not found." >&2
+  exit 1
+fi
+if [[ ! -f "$VAULT_PASS_FILE" ]]; then
+  echo "error: $VAULT_PASS_FILE not found." >&2
   exit 1
 fi
 
 mkdir -p "$(dirname "$SSH_KEY")"
-DECRYPTED="$(mktemp)"
-trap 'rm -f "$DECRYPTED"' EXIT
+chmod 700 "$(dirname "$SSH_KEY")"
 
-SOPS_AGE_KEY_FILE="$SOPS_AGE_KEY_FILE" sops -d "$SECRETS_ENC" > "$DECRYPTED"
-jq -r '.ssh_private_key' "$DECRYPTED" > "$SSH_KEY"
-jq -r '.ssh_public_key' "$DECRYPTED" > "${SSH_KEY}.pub"
+TMP="$(mktemp)"
+trap 'rm -f "$TMP"' EXIT INT TERM HUP
+
+ansible-vault view --vault-password-file "$VAULT_PASS_FILE" "$VAULT_FILE" > "$TMP"
+jq -r '.ssh_private_key' "$TMP" > "$SSH_KEY"
+jq -r '.ssh_public_key'  "$TMP" > "${SSH_KEY}.pub"
 chmod 600 "$SSH_KEY"
 chmod 644 "${SSH_KEY}.pub"
 
-echo "Wrote ${SSH_KEY} and ${SSH_KEY}.pub"
+echo "Wrote $SSH_KEY and ${SSH_KEY}.pub"
 ssh-keygen -lf "${SSH_KEY}.pub"
