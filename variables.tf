@@ -1,17 +1,17 @@
 variable "hcloud_token" {
   type        = string
-  description = "Hetzner Cloud API token (Read & Write). Set in SOPS secrets.enc.json."
+  description = "Hetzner Cloud API token (Read & Write). Stored in secrets.vault.json (Ansible Vault)."
   sensitive   = true
 }
 
 variable "ssh_public_key" {
   type        = string
-  description = "SSH public key content for Hetzner and cluster nodes. Set in SOPS secrets.enc.json."
+  description = "SSH public key content for Hetzner and cluster nodes. Stored in secrets.vault.json."
 }
 
 variable "ssh_private_key" {
   type        = string
-  description = "SSH private key content for Terraform provisioning. Set in SOPS secrets.enc.json."
+  description = "SSH private key content for Terraform provisioning. Stored in secrets.vault.json."
   sensitive   = true
 }
 
