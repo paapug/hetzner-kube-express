@@ -2,8 +2,27 @@
 
 A dev Kubernetes cluster on Hetzner Cloud, provisioned with Terraform
 ([kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner)).
-Secrets live in `secrets.vault.json`, encrypted with **Ansible Vault** — you
-only need the shared passphrase.
+All infrastructure code lives in [`cluster/terraform/`](cluster/terraform/).
+Secrets live in `cluster/terraform/secrets.vault.json`, encrypted with
+**Ansible Vault** — you only need the shared passphrase.
+
+## Repo layout
+
+```
+.
+├── cluster/
+│   └── terraform/        # Terraform root module, Packer, Makefile, scripts/, secrets
+│       ├── kube.tf
+│       ├── variables.tf
+│       ├── versions.tf
+│       ├── terraform.tfvars.example
+│       ├── hcloud-microos-snapshots.pkr.hcl
+│       ├── Makefile
+│       ├── scripts/
+│       ├── secrets.vault.json        (encrypted, committed)
+│       └── .vendor/                  (vendored TF module submodule)
+└── README.md
+```
 
 ---
 
@@ -23,8 +42,8 @@ brew install terraform ansible jq
 ## 3. Clone and unlock
 
 ```bash
-git clone <repo-url>
-cd hetzner-k8s-playground
+git clone --recurse-submodules <repo-url>
+cd hetzner-k8s-playground/cluster/terraform
 
 # Save the passphrase locally (gitignored, mode 600)
 umask 077
@@ -33,6 +52,8 @@ printf '%s' 'PASTE-THE-PASSPHRASE-HERE' > .vault_pass
 # Restore the cluster SSH key for ssh(1)/scp
 make ssh-export
 ```
+
+All `make` and `terraform` commands below are run from `cluster/terraform/`.
 
 ## 4. Run Terraform
 
@@ -47,7 +68,7 @@ The first `apply` takes ~10–20 minutes (kube-hetzner builds a MicroOS snapshot
 ## 5. Use the cluster
 
 ```bash
-# kubectl
+# kubectl  (run from cluster/terraform/)
 terraform output -raw kubeconfig > kubeconfig.yaml
 export KUBECONFIG="$PWD/kubeconfig.yaml"
 kubectl get nodes
@@ -79,7 +100,7 @@ wiped on exit). Nothing unencrypted ends up on disk in this repo.
 
 ## What not to commit
 
-`.gitignore` already covers these, but FYI:
+`.gitignore` already covers these, but FYI (all inside `cluster/terraform/`):
 
 - `.vault_pass` — the passphrase
 - `.cluster_ssh/` — the cluster SSH key restored from the vault

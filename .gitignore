@@ -1,5 +1,4 @@
 .terraform/
-.terraform.lock.hcl
 *.tfstate
 *.tfstate.*
 terraform.tfvars
@@ -11,6 +10,8 @@ terraform.tfvars
 .cluster_ssh/
 
 kubeconfig.yaml
+*_kubeconfig.yaml
+*_kustomization_backup.yaml
 crash.log
 override.tf
 override.tf.json
