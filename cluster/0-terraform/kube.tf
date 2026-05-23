@@ -14,11 +14,8 @@ module "kube-hetzner" {
   ssh_public_key  = var.ssh_public_key
   ssh_private_key = var.ssh_private_key
 
-  cluster_name      = "k8s-playground"
-  network_region    = "eu-central"
-  network_ipv4_cidr = "10.116.0.0/14"
-  cluster_ipv4_cidr = "10.116.0.0/16"
-  service_ipv4_cidr = "10.117.0.0/16"
+  cluster_name   = "k8s-playground"
+  network_region = "eu-central"
 
   # --- Cilium: kube-proxy replacement + Hubble ---
   cni_plugin            = "cilium"
@@ -26,7 +23,6 @@ module "kube-hetzner" {
   cilium_hubble_enabled = true
 
   cilium_routing_mode                   = "native"
-  cilium_ipv4_native_routing_cidr       = "10.116.0.0/16" # must match cluster_ipv4_cidr
   cilium_loadbalancer_acceleration_mode = "best-effort"
 
   # Klipper (k3s ServiceLB): ingress uses node public IPs — no extra Hetzner ingress LB cost
