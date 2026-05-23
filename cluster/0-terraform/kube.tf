@@ -1,4 +1,4 @@
-# Dev cluster: 3× cx23 in Falkenstein (fsn1), public nodes, Cilium + Hubble, Klipper LB.
+# Dev cluster in Falkenstein (fsn1), public nodes, Cilium + Hubble, Klipper LB.
 # Latest module release at time of authoring: v2.19.3 — check https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud
 
 module "kube-hetzner" {
@@ -14,11 +14,11 @@ module "kube-hetzner" {
   ssh_public_key  = var.ssh_public_key
   ssh_private_key = var.ssh_private_key
 
-  cluster_name   = "k8s-playground-dev"
-  network_region = "eu-central"
-
-  # Pod network (must stay inside network_ipv4_cidr default 10.0.0.0/8; do not change after first apply)
+  cluster_name      = "k8s-playground"
+  network_region    = "eu-central"
+  network_ipv4_cidr = "10.116.0.0/14"
   cluster_ipv4_cidr = "10.116.0.0/16"
+  service_ipv4_cidr = "10.117.0.0/16"
 
   # --- Cilium: kube-proxy replacement + Hubble ---
   cni_plugin            = "cilium"
@@ -26,14 +26,13 @@ module "kube-hetzner" {
   cilium_hubble_enabled = true
 
   cilium_routing_mode                   = "native"
-  cilium_ipv4_native_routing_cidr       = "10.116.0.0/16"
+  cilium_ipv4_native_routing_cidr       = "10.116.0.0/16" # must match cluster_ipv4_cidr
   cilium_loadbalancer_acceleration_mode = "best-effort"
 
   # Klipper (k3s ServiceLB): ingress uses node public IPs — no extra Hetzner ingress LB cost
   enable_klipper_metal_lb = true
   load_balancer_location  = "fsn1"
 
-  # Single control plane + 2 workers = 3 cx23 nodes, each with public IPv4
   control_plane_nodepools = [
     {
       name        = "control-plane-fsn1"
