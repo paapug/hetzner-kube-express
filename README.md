@@ -109,17 +109,19 @@ From `cluster/dev/`:
 | `terragrunt dag graph` | Show unit dependency graph |
 | `ENV_DIR=cluster/dev cluster/_scripts/secrets-edit.sh` | Edit `secrets.json` in `$EDITOR` (downloads, validates JSON, re-uploads) |
 | `ENV_DIR=cluster/dev cluster/_scripts/fetch-ssh-key.sh` | Restore SSH key locally |
+| `ENV_DIR=cluster/dev cluster/_scripts/fetch-kubeconfig.sh` | Fetch kubeconfig from R2; prompts whether to merge into `~/.kube/config` |
 
 Per unit: `cd cluster/dev/<unit> && terragrunt apply`.
 
 ### Get the kubeconfig
 
+The `cluster` unit uploads the rendered kubeconfig to `s3://<r2_bucket>/secrets/<env>/kubeconfig.yaml` on every apply. Fetch it with:
+
 ```bash
-cd cluster/dev/cluster
-terragrunt output -raw kubeconfig > ../kubeconfig.yaml
-chmod 600 ../kubeconfig.yaml
-export KUBECONFIG="$PWD/../kubeconfig.yaml"
+ENV_DIR=cluster/dev cluster/_scripts/fetch-kubeconfig.sh
 ```
+
+The script asks whether to merge the new context into `~/.kube/config` (backs up the existing file first via `kubectl config view --flatten`, then switches `kubectl` to the new context). Decline and it writes `cluster/dev/.kube/config` (mode 600) — `export KUBECONFIG=...` to use it. Set `AUTO_MERGE=1` (or `0`) to skip the prompt.
 
 ### Argo CD admin password
 

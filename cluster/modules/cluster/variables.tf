@@ -19,6 +19,11 @@ variable "r2_secrets_key" {
   description = "Object key (within r2_bucket) for the JSON-encoded secrets blob. Expected keys: hcloud_token, ssh_public_key, ssh_private_key."
 }
 
+variable "r2_kubeconfig_key" {
+  type        = string
+  description = "Object key (within r2_bucket) for the rendered kubeconfig YAML. Conventionally secrets/<env>/kubeconfig.yaml."
+}
+
 variable "r2_aws_profile" {
   type        = string
   description = "AWS shared-credentials profile name (in ~/.aws/credentials) holding the R2 access key. AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY in the env override this per the SDK's standard precedence."

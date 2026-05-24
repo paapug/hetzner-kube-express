@@ -15,6 +15,9 @@ terraform.tfvars
 # Cluster SSH key restored locally from R2 secrets.json
 .cluster_ssh/
 
+# Kubeconfig fetched from R2 (per-env, by fetch-kubeconfig.sh)
+.kube/
+
 kubeconfig.yaml
 *_kubeconfig.yaml
 *_kustomization_backup.yaml

@@ -33,7 +33,19 @@ data "aws_s3_object" "secrets" {
 }
 
 locals {
-  # NOTE: secrets land in tfstate. State itself is encrypted-at-rest in R2 and
-  # access is gated by the R2 token; rotate the token to revoke read access.
   secrets = jsondecode(data.aws_s3_object.secrets.body)
+}
+
+# Persist the rendered kubeconfig to R2 so teammates can fetch it without
+# running terraform.
+resource "aws_s3_object" "kubeconfig" {
+  provider = aws.r2
+
+  bucket       = var.r2_bucket
+  key          = var.r2_kubeconfig_key
+  content      = module.kube-hetzner.kubeconfig
+  content_type = "application/yaml"
+
+  # etag forces a PUT only when the rendered kubeconfig actually changes;
+  etag = md5(module.kube-hetzner.kubeconfig)
 }

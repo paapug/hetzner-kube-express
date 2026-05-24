@@ -20,11 +20,12 @@ terraform {
 }
 
 inputs = {
-  cluster_name   = local.env.locals.cluster_name
-  r2_account_id  = include.root.locals.r2_account_id
-  r2_bucket      = include.root.locals.r2_bucket
-  r2_secrets_key = include.root.locals.r2_secrets_key
-  r2_aws_profile = include.root.locals.r2_aws_profile
+  cluster_name      = local.env.locals.cluster_name
+  r2_account_id     = include.root.locals.r2_account_id
+  r2_bucket         = include.root.locals.r2_bucket
+  r2_secrets_key    = include.root.locals.r2_secrets_key
+  r2_kubeconfig_key = include.root.locals.r2_kubeconfig_key
+  r2_aws_profile    = include.root.locals.r2_aws_profile
 
   firewall_ssh_source      = local.env.locals.firewall_ssh_source
   firewall_kube_api_source = local.env.locals.firewall_kube_api_source

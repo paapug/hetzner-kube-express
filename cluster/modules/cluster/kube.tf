@@ -75,8 +75,3 @@ output "control_planes_public_ipv4" {
 output "agents_public_ipv4" {
   value = module.kube-hetzner.agents_public_ipv4
 }
-
-output "ingress_public_ipv4" {
-  description = "Ingress endpoint (Klipper: one of the node public IPs)"
-  value       = module.kube-hetzner.ingress_public_ipv4
-}
