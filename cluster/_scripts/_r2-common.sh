@@ -102,7 +102,7 @@ EOF
 
 # Resolve project-global R2 settings from cluster/root.hcl and per-env overrides
 # from cluster/<env>/env.hcl. Mirrors the precedence used by Terragrunt itself:
-#   r2_account_id, r2_bucket  ⇐ root.hcl (project-global; not overrideable)
+#   r2_account_id, r2_bucket  ⇐ env.hcl if set, else *_default in root.hcl
 #   r2_aws_profile            ⇐ env.hcl if set, else r2_aws_profile_default in root.hcl
 #   secrets key               ⇐ "secrets/<env-folder-name>/secrets.json"
 #
@@ -140,25 +140,31 @@ r2_load_env() {
   root_parsed="$(hcl2json < "$root_file")"
   env_parsed="$(hcl2json < "$env_file")"
 
-  local account_id bucket profile_default profile_override aws_profile
-  account_id="$(jq -r '.locals[0].r2_account_id // empty' <<<"$root_parsed")"
-  bucket="$(jq -r '.locals[0].r2_bucket // empty' <<<"$root_parsed")"
-  profile_default="$(jq -r '.locals[0].r2_aws_profile_default // empty' <<<"$root_parsed")"
-  profile_override="$(jq -r '.locals[0].r2_aws_profile // empty' <<<"$env_parsed")"
+  local account_id_default bucket_default profile_default
+  local account_id_override bucket_override profile_override
+  local account_id bucket aws_profile
+
+  account_id_default="$(jq -r '.locals[0].r2_account_id_default  // empty' <<<"$root_parsed")"
+  bucket_default="$(jq -r     '.locals[0].r2_bucket_default      // empty' <<<"$root_parsed")"
+  profile_default="$(jq -r    '.locals[0].r2_aws_profile_default // empty' <<<"$root_parsed")"
+
+  account_id_override="$(jq -r '.locals[0].r2_account_id  // empty' <<<"$env_parsed")"
+  bucket_override="$(jq -r     '.locals[0].r2_bucket      // empty' <<<"$env_parsed")"
+  profile_override="$(jq -r    '.locals[0].r2_aws_profile // empty' <<<"$env_parsed")"
+
+  account_id="${account_id_override:-$account_id_default}"
+  bucket="${bucket_override:-$bucket_default}"
+  aws_profile="${profile_override:-$profile_default}"
 
   if [[ -z "$account_id" || "$account_id" == "REPLACE_WITH_CF_ACCOUNT_ID" ]]; then
-    printf 'error: r2_account_id is unset in %q\n' "$root_file" >&2
+    printf 'error: r2_account_id is unset (no override in %q, no r2_account_id_default in %q)\n' \
+      "$env_file" "$root_file" >&2
     exit 1
   fi
   if [[ -z "$bucket" ]]; then
-    printf 'error: r2_bucket is unset in %q\n' "$root_file" >&2
+    printf 'error: r2_bucket is unset (no override in %q, no r2_bucket_default in %q)\n' \
+      "$env_file" "$root_file" >&2
     exit 1
-  fi
-
-  if [[ -n "$profile_override" ]]; then
-    aws_profile="$profile_override"
-  else
-    aws_profile="$profile_default"
   fi
 
   export R2_ACCOUNT_ID="$account_id"

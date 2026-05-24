@@ -54,8 +54,8 @@ module "kube-hetzner" {
   automatically_upgrade_os  = false
   automatically_upgrade_k3s = false
 
-  firewall_ssh_source      = local.secrets.firewall_ssh_source
-  firewall_kube_api_source = local.secrets.firewall_kube_api_source
+  firewall_ssh_source      = var.firewall_ssh_source
+  firewall_kube_api_source = var.firewall_kube_api_source
 }
 
 output "kubeconfig" {

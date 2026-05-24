@@ -34,6 +34,17 @@ dependency "acme" {
   mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]
 }
 
+# DNS must exist before Argo CD applies: cert-manager's HTTP-01 solver needs
+# argocd_host to resolve to a node IP so Let's Encrypt can reach Traefik.
+dependency "cloudflare_dns" {
+  config_path = "../cloudflare-dns"
+
+  mock_outputs = {
+    records_created = []
+  }
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]
+}
+
 inputs = {
   kubeconfig           = dependency.cluster.outputs.kubeconfig
   acme_issuer_name     = dependency.acme.outputs.issuer_name

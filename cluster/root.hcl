@@ -1,23 +1,18 @@
 # Environment-agnostic Terragrunt root.
 #
-# Project-global R2 settings (account, bucket, default AWS profile) live here
-# so they can't drift across environments. Per-env values stay in env.hcl.
-#
 # State key:   state/<env>/<unit_path>/terraform.tfstate
 # Secrets key: secrets/<env>/secrets.json
-# Locking:     native S3 conditional-write lockfile (Terraform >= 1.10).
 
 locals {
   project_name = "hetzner-k8s-playground"
 
-  # Project-global R2 settings. Bucket + account id + default profile are the
-  # same for every env. An env can override r2_aws_profile by re-defining it
-  # in env.hcl (e.g. for prod with a different IAM token).
-  r2_account_id          = "REPLACE_WITH_CF_ACCOUNT_ID"
-  r2_bucket              = "REPLACE_WITH_R2_BUCKET"
+  # Project-global R2 settings. Bucket + account id + AWS profile defaults live
+  # here and are the same for every env unless an env opts to override them.
+  r2_account_id_default  = "REPLACE_WITH_CF_ACCOUNT_ID"
+  r2_bucket_default      = "REPLACE_WITH_R2_BUCKET"
   r2_aws_profile_default = "r2-hetzner-k8s-playground"
 
-  # Per-env values (cluster_name, argocd_*, acme_*, optional r2_aws_profile).
+  # Per-env values (cluster_name, argocd_*, acme_*, optional r2_* overrides).
   env_hcl_path = find_in_parent_folders("env.hcl")
   env          = read_terragrunt_config(local.env_hcl_path)
 
@@ -25,7 +20,9 @@ locals {
   environment    = basename(dirname(local.env_hcl_path))
   r2_secrets_key = "secrets/${local.environment}/secrets.json"
 
-  # Honor per-env override of r2_aws_profile if set; otherwise use the default.
+  # Honor per-env overrides if set; otherwise fall back to the project defaults.
+  r2_account_id  = lookup(local.env.locals, "r2_account_id", local.r2_account_id_default)
+  r2_bucket      = lookup(local.env.locals, "r2_bucket", local.r2_bucket_default)
   r2_aws_profile = lookup(local.env.locals, "r2_aws_profile", local.r2_aws_profile_default)
 }
 
@@ -40,8 +37,6 @@ remote_state {
   config = {
     bucket = local.r2_bucket
     # path_relative_to_include() returns "<env>/<unit>" (e.g. "dev/cluster")
-    # because root.hcl lives one level above the env folder. That's already
-    # env-namespaced, so don't prepend `local.environment` again.
     key     = "state/${path_relative_to_include()}/terraform.tfstate"
     region  = "auto"
     profile = local.r2_aws_profile
@@ -60,7 +55,6 @@ remote_state {
   }
 }
 
-# Transient errors during provider downloads / Hetzner API calls.
 errors {
   retry "transient" {
     retryable_errors = [

@@ -50,21 +50,29 @@ if [[ -z "$HCLOUD_TOKEN" ]]; then
   exit 1
 fi
 
+# Cloudflare API token is optional at bootstrap time — the cloudflare-dns
+# unit will fail to apply until it's set, but the cluster/acme units don't
+# need it. Leave blank to fill in later via secrets-edit.sh.
+CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-}"
+if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
+  read -rsp "Enter Cloudflare API token (Zone:DNS:Edit; blank to skip): " CLOUDFLARE_API_TOKEN; echo
+fi
+
 SECRETS="$TMPDIR_SEC/secrets.json"
 jq -n \
-  --arg token "$HCLOUD_TOKEN" \
-  --arg pub  "$(cat "${SSH_KEY}.pub")" \
-  --arg priv "$(cat "$SSH_KEY")" \
+  --arg token    "$HCLOUD_TOKEN" \
+  --arg cf_token "$CLOUDFLARE_API_TOKEN" \
+  --arg pub      "$(cat "${SSH_KEY}.pub")" \
+  --arg priv     "$(cat "$SSH_KEY")" \
   '{
-     hcloud_token:             $token,
-     ssh_public_key:           $pub,
-     ssh_private_key:          $priv,
-     firewall_ssh_source:      ["0.0.0.0/0", "::/0"],
-     firewall_kube_api_source: ["0.0.0.0/0", "::/0"]
+     hcloud_token:         $token,
+     cloudflare_api_token: $cf_token,
+     ssh_public_key:       $pub,
+     ssh_private_key:      $priv
    }' > "$SECRETS"
 chmod 600 "$SECRETS"
 
-unset HCLOUD_TOKEN
+unset HCLOUD_TOKEN CLOUDFLARE_API_TOKEN
 
 printf 'Uploading to s3://%s/%s ...\n' "$R2_BUCKET" "$R2_SECRETS_KEY" >&2
 r2_aws s3 cp "$SECRETS" "s3://${R2_BUCKET}/${R2_SECRETS_KEY}" \

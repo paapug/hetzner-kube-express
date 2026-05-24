@@ -33,10 +33,9 @@ else
   cat > "$LOCAL" <<'JSON'
 {
   "hcloud_token": "",
+  "cloudflare_api_token": "",
   "ssh_public_key": "",
-  "ssh_private_key": "",
-  "firewall_ssh_source": ["0.0.0.0/0", "::/0"],
-  "firewall_kube_api_source": ["0.0.0.0/0", "::/0"]
+  "ssh_private_key": ""
 }
 JSON
 fi
