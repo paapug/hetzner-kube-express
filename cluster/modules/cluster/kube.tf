@@ -9,12 +9,12 @@ module "kube-hetzner" {
     hcloud = hcloud
   }
 
-  hcloud_token = var.hcloud_token
+  hcloud_token = local.secrets.hcloud_token
 
-  ssh_public_key  = var.ssh_public_key
-  ssh_private_key = var.ssh_private_key
+  ssh_public_key  = local.secrets.ssh_public_key
+  ssh_private_key = local.secrets.ssh_private_key
 
-  cluster_name   = "k8s-playground"
+  cluster_name   = var.cluster_name
   network_region = "eu-central"
 
   # --- Cilium: kube-proxy replacement + Hubble ---
@@ -54,8 +54,8 @@ module "kube-hetzner" {
   automatically_upgrade_os  = false
   automatically_upgrade_k3s = false
 
-  firewall_ssh_source      = var.firewall_ssh_source
-  firewall_kube_api_source = var.firewall_kube_api_source
+  firewall_ssh_source      = local.secrets.firewall_ssh_source
+  firewall_kube_api_source = local.secrets.firewall_kube_api_source
 }
 
 output "kubeconfig" {

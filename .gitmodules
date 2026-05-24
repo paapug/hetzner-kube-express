@@ -1,3 +1,3 @@
-[submodule "cluster/terraform/.vendor/terraform-hcloud-kube-hetzner"]
-	path = cluster/terraform/.vendor/terraform-hcloud-kube-hetzner
-	url = https://github.com/mysticaltech/terraform-hcloud-kube-hetzner.git
+[submodule ".cursor/skills/.vendor/cc-devops-skills"]
+	path = .cursor/skills/.vendor/cc-devops-skills
+	url = https://github.com/akin-ozer/cc-devops-skills.git

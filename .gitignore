@@ -3,10 +3,16 @@
 *.tfstate.*
 terraform.tfvars
 
-# Ansible Vault passphrase (the only thing teammates need to obtain out-of-band)
-.vault_pass
+# Terragrunt local cache (per cluster/root.hcl). State itself lives in R2.
+**/.terragrunt-cache/
 
-# Cluster SSH key restored from the vault for local ssh/scp
+# Per-developer R2 token / env files
+.envrc
+.env
+.env.*
+!.env.example
+
+# Cluster SSH key restored locally from R2 secrets.json
 .cluster_ssh/
 
 kubeconfig.yaml

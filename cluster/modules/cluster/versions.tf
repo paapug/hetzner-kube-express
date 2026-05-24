@@ -6,9 +6,13 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = ">= 1.51.0"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.70"
+    }
   }
 }
 
 provider "hcloud" {
-  token = var.hcloud_token
+  token = local.secrets.hcloud_token
 }

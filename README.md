@@ -1,121 +1,170 @@
-# hetzner-k8s-playground — Teammate guide
+# hetzner-k8s-playground
 
-A dev Kubernetes cluster on Hetzner Cloud, provisioned with Terraform
-([kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner)).
-All infrastructure code lives in [`cluster/terraform/`](cluster/terraform/).
-Secrets live in `cluster/terraform/secrets.vault.json`, encrypted with
-**Ansible Vault** — you only need the shared passphrase.
+A dev Kubernetes cluster on Hetzner Cloud.
 
-## Repo layout
+- **Provisioning:** Terraform via [kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner), driven by [Terragrunt](https://terragrunt.gruntwork.io/).
+- **State + secrets:** Cloudflare R2 (S3-compatible).
+- **No** Make, Ansible Vault, or shared passphrases.
+
+## Layout
 
 ```
-.
-├── cluster/
-│   └── terraform/        # Terraform root module, Packer, Makefile, scripts/, secrets
-│       ├── kube.tf
-│       ├── variables.tf
-│       ├── versions.tf
-│       ├── terraform.tfvars.example
-│       ├── hcloud-microos-snapshots.pkr.hcl
-│       ├── Makefile
-│       ├── scripts/
-│       ├── secrets.vault.json        (encrypted, committed)
-│       └── .vendor/                  (vendored TF module submodule)
-└── README.md
+cluster/
+├── root.hcl            # Terragrunt root (R2 s3 backend)
+├── modules/            # Terraform modules
+│   ├── cluster/        # kube-hetzner + reads secrets from R2
+│   ├── acme/           # Let's Encrypt ClusterIssuer
+│   └── argocd/         # Argo CD + Traefik Ingress
+├── _scripts/           # one-shot ops (R2 helpers)
+└── dev/                # the dev environment
+    ├── env.hcl         # non-secret per-env values
+    ├── cluster/        # -> modules/cluster
+    ├── acme/           # -> modules/acme   (depends on cluster)
+    └── argocd/         # -> modules/argocd (depends on cluster + acme)
+```
+
+R2 holds:
+
+```
+<bucket>/state/<env>/<unit>/terraform.tfstate
+<bucket>/secrets/<env>/secrets.json
+```
+
+`<env>` is the env folder name. Add a new env with `cp -r cluster/dev cluster/staging`; paths follow.
+
+Apply order: `cluster` → `acme` → `argocd`.
+
+---
+
+## Initial setup (cluster owner, once)
+
+You need: a Cloudflare R2 bucket and an R2 API token with read+write.
+
+1. Install tools.
+   ```bash
+   brew install terraform terragrunt awscli jq hcl2json
+   ```
+2. Configure the AWS profile (the profile name is in [cluster/dev/env.hcl](cluster/dev/env.hcl) as `r2_aws_profile`).
+   ```ini
+   # ~/.aws/credentials
+   [r2-hetzner-k8s-playground]
+   aws_access_key_id     = <r2-access-key-id>
+   aws_secret_access_key = <r2-secret-access-key>
+   ```
+3. Set R2 details in [cluster/dev/env.hcl](cluster/dev/env.hcl): `r2_account_id`, `r2_bucket`.
+4. Create `secrets.json` in R2 (generates the cluster SSH key, asks for your Hetzner token).
+   ```bash
+   ENV_DIR=cluster/dev cluster/_scripts/r2-bootstrap.sh
+   ```
+5. Apply.
+   ```bash
+   cd cluster/dev
+   terragrunt run --all apply
+   ```
+
+First apply is ~10–20 min (kube-hetzner builds a MicroOS snapshot).
+
+Share with teammates: the AWS profile keys (via password manager).
+
+---
+
+## Joining as a teammate
+
+1. Install tools.
+   ```bash
+   brew install terraform terragrunt awscli jq hcl2json
+   ```
+2. Get the R2 keys from the cluster owner. Add them to `~/.aws/credentials`:
+   ```ini
+   [r2-hetzner-k8s-playground]
+   aws_access_key_id     = <from-owner>
+   aws_secret_access_key = <from-owner>
+   ```
+3. (Optional) Restore the cluster SSH key locally if you need `ssh`/`scp` to nodes.
+   ```bash
+   ENV_DIR=cluster/dev cluster/_scripts/fetch-ssh-key.sh
+   ```
+4. You're done. Run terragrunt as needed.
+   ```bash
+   cd cluster/dev
+   terragrunt run --all plan
+   ```
+
+---
+
+## Daily use
+
+From `cluster/dev/`:
+
+| Command | What |
+|---|---|
+| `terragrunt run --all plan` | Plan all units |
+| `terragrunt run --all apply` | Apply all units |
+| `terragrunt run --all destroy` | Tear down |
+| `terragrunt dag graph` | Show unit dependency graph |
+| `ENV_DIR=cluster/dev cluster/_scripts/secrets-edit.sh` | Edit `secrets.json` in `$EDITOR` (downloads, validates JSON, re-uploads) |
+| `ENV_DIR=cluster/dev cluster/_scripts/fetch-ssh-key.sh` | Restore SSH key locally |
+
+Per unit: `cd cluster/dev/<unit> && terragrunt apply`.
+
+### Get the kubeconfig
+
+```bash
+cd cluster/dev/cluster
+terragrunt output -raw kubeconfig > ../kubeconfig.yaml
+chmod 600 ../kubeconfig.yaml
+export KUBECONFIG="$PWD/../kubeconfig.yaml"
+```
+
+### Argo CD admin password
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath='{.data.password}' | base64 -d; echo
+```
+
+### Open Argo CD UI without DNS
+
+```bash
+kubectl -n argocd port-forward svc/argocd-server 8080:80
 ```
 
 ---
 
-## 1. Get the vault passphrase
+## Credentials: alternatives to the AWS profile
 
-Ask the cluster owner for it. They will send it via a password manager
-(1Password, Bitwarden, etc.) — **not** in chat or email.
+The default uses `~/.aws/credentials`. Override with one of these when you need to:
 
-## 2. Install prerequisites
+- **`.env` file + direnv** — recommended for IDE/per-folder workflows.
+  ```bash
+  cp .env.example cluster/dev/.env && $EDITOR cluster/dev/.env
+  echo 'dotenv .env' > cluster/dev/.envrc
+  direnv allow cluster/dev
+  ```
+- **`.env` file + dotenvx** — `dotenvx run -f .env -- terragrunt run --all plan`
+- **One-shot export** — `set -a; source .env; set +a`
+- **Plain shell** — `export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=auto`
 
-```bash
-brew install terraform ansible jq
-```
+Helper scripts in `cluster/_scripts/` auto-load `<repo>/.env` and `<env>/.env` (no direnv needed).
 
-(`ssh-keygen` is built-in on macOS/Linux.)
+Precedence: `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY` > `AWS_PROFILE` > `r2_aws_profile` from `env.hcl`.
 
-## 3. Clone and unlock
-
-```bash
-git clone --recurse-submodules <repo-url>
-cd hetzner-k8s-playground/cluster/terraform
-
-# Save the passphrase locally (gitignored, mode 600)
-umask 077
-printf '%s' 'PASTE-THE-PASSPHRASE-HERE' > .vault_pass
-
-# Restore the cluster SSH key for ssh(1)/scp
-make ssh-export
-```
-
-All `make` and `terraform` commands below are run from `cluster/terraform/`.
-
-## 4. Run Terraform
-
-```bash
-make init
-make plan
-make apply
-```
-
-The first `apply` takes ~10–20 minutes (kube-hetzner builds a MicroOS snapshot).
-
-## 5. Use the cluster
-
-```bash
-# kubectl  (run from cluster/terraform/)
-terraform output -raw kubeconfig > kubeconfig.yaml
-export KUBECONFIG="$PWD/kubeconfig.yaml"
-kubectl get nodes
-
-# SSH to a node
-ssh -i .cluster_ssh/cluster_ed25519 root@$(terraform output -json control_planes_public_ipv4 | jq -r '.[0]')
-
-# Hubble UI (Cilium observability)
-kubectl -n kube-system port-forward svc/hubble-ui 12000:80
-# open http://localhost:12000
-```
+`.env`, `.env.*`, `.envrc`, `*.tfstate*`, `.cluster_ssh/`, `**/.terragrunt-cache/` are gitignored.
 
 ---
 
-## Daily commands
+## Trade-offs (read before going to prod)
 
-| Command | What it does |
-|---------|--------------|
-| `make plan`         | Show pending changes |
-| `make apply`        | Apply changes |
-| `make destroy`      | Tear the cluster down |
-| `make output`       | Show Terraform outputs |
-| `make secrets-edit` | Edit `secrets.vault.json` in `$EDITOR` |
-| `make secrets-view` | Print decrypted JSON |
-| `make ssh-export`   | Re-create `.cluster_ssh/cluster_ed25519` |
-
-All `make` targets decrypt secrets into a short-lived tempfile (mode 700,
-wiped on exit). Nothing unencrypted ends up on disk in this repo.
-
-## What not to commit
-
-`.gitignore` already covers these, but FYI (all inside `cluster/terraform/`):
-
-- `.vault_pass` — the passphrase
-- `.cluster_ssh/` — the cluster SSH key restored from the vault
-- `*.tfstate*` — Terraform state (contains decrypted secrets)
-- `kubeconfig.yaml`
+- Secrets land in tfstate (`data.aws_s3_object.secrets.body`). State is encrypted-at-rest in R2 and gated by the R2 token. Fine for a playground.
+- Single bucket, single token. Harden by splitting state and secrets into separate buckets/tokens.
+- `secrets.json` itself isn't file-encrypted. Rotate by reissuing the R2 token.
 
 ## Troubleshooting
 
 | Symptom | Fix |
-|---------|-----|
-| `error: .vault_pass missing` | You skipped step 3. Create the file with the shared passphrase. |
-| `Decryption failed` | Wrong passphrase. Ask the owner. |
-| `make plan` complains about a missing tool | Re-run step 2 (`brew install ...`). |
+|---|---|
+| `no R2 credentials found` | Set up `~/.aws/credentials` (step 2) or use a `.env`. |
+| `403 AccessDenied` on init | R2 token lacks read+write on the bucket. |
+| `404` on `secrets.json` during plan | Owner hasn't run `r2-bootstrap.sh` for this env. |
 | First `apply` seems stuck | Normal — MicroOS snapshot build, ~10 min. |
-| `Warning: Unused Attribute … nat_router_primary_ipv4` | Harmless, comes from the vendored module. |
-
-Owner-only tasks (initial vault setup, rotating the passphrase, changing
-node count / region) live in the project notes — ask if you need them.
+| Warnings on acme/argocd about undeclared vars | Expected — only the cluster unit reads R2 secrets. |
