@@ -1,16 +1,7 @@
 # Environment-agnostic Terragrunt root.
 #
-# State + secrets both live in Cloudflare R2 (S3-compatible). Authentication
-# is via standard AWS env vars — same vars feed the s3 backend here AND the
-# aliased aws.r2 provider in cluster/modules/cluster/r2.tf:
-#
-#   export AWS_ACCESS_KEY_ID='<r2-access-key-id>'
-#   export AWS_SECRET_ACCESS_KEY='<r2-secret-access-key>'
-#   export AWS_REGION=auto
-#
-# The `environment` name (used for both R2 state path and R2 secrets key) is
-# derived from the folder containing env.hcl: cluster/dev/env.hcl -> "dev",
-# cluster/staging/env.hcl -> "staging". No edits needed when adding an env.
+# Project-global R2 settings (account, bucket, default AWS profile) live here
+# so they can't drift across environments. Per-env values stay in env.hcl.
 #
 # State key:   state/<env>/<unit_path>/terraform.tfstate
 # Secrets key: secrets/<env>/secrets.json
@@ -19,11 +10,23 @@
 locals {
   project_name = "hetzner-k8s-playground"
 
+  # Project-global R2 settings. Bucket + account id + default profile are the
+  # same for every env. An env can override r2_aws_profile by re-defining it
+  # in env.hcl (e.g. for prod with a different IAM token).
+  r2_account_id          = "REPLACE_WITH_CF_ACCOUNT_ID"
+  r2_bucket              = "REPLACE_WITH_R2_BUCKET"
+  r2_aws_profile_default = "r2-hetzner-k8s-playground"
+
+  # Per-env values (cluster_name, argocd_*, acme_*, optional r2_aws_profile).
   env_hcl_path = find_in_parent_folders("env.hcl")
   env          = read_terragrunt_config(local.env_hcl_path)
 
+  # `environment` derived from the folder holding env.hcl.
   environment    = basename(dirname(local.env_hcl_path))
   r2_secrets_key = "secrets/${local.environment}/secrets.json"
+
+  # Honor per-env override of r2_aws_profile if set; otherwise use the default.
+  r2_aws_profile = lookup(local.env.locals, "r2_aws_profile", local.r2_aws_profile_default)
 }
 
 remote_state {
@@ -35,16 +38,16 @@ remote_state {
   }
 
   config = {
-    bucket = local.env.locals.r2_bucket
+    bucket = local.r2_bucket
     # path_relative_to_include() returns "<env>/<unit>" (e.g. "dev/cluster")
     # because root.hcl lives one level above the env folder. That's already
     # env-namespaced, so don't prepend `local.environment` again.
     key     = "state/${path_relative_to_include()}/terraform.tfstate"
     region  = "auto"
-    profile = local.env.locals.r2_aws_profile
+    profile = local.r2_aws_profile
 
     endpoints = {
-      s3 = "https://${local.env.locals.r2_account_id}.r2.cloudflarestorage.com"
+      s3 = "https://${local.r2_account_id}.r2.cloudflarestorage.com"
     }
 
     use_lockfile                = true

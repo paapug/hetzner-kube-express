@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Shared helpers for the R2 scripts. Sourced; not executed directly.
 #
-# Reads the same env.hcl that Terragrunt reads, so there is exactly one source
-# of truth for r2_bucket, r2_account_id, r2_secrets_key and environment.
+# Reads project-global R2 settings (account, bucket, default profile) from
+# cluster/root.hcl and per-env profile override from cluster/<env>/env.hcl,
+# matching what Terragrunt itself uses at plan/apply time.
 #
 # Usage:
 #   source "$(dirname "$0")/_r2-common.sh"
-#   ENV_DIR=cluster/dev r2_load_env       # exports R2_ACCOUNT_ID/R2_BUCKET/R2_SECRETS_KEY/R2_ENDPOINT
+#   ENV_DIR=cluster/dev r2_load_env       # exports R2_ACCOUNT_ID/R2_BUCKET/R2_SECRETS_KEY/R2_ENDPOINT/R2_AWS_PROFILE
 #
-# Auth: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY must be set in the caller's env.
+# Auth: see r2_require_aws_creds below.
 set -euo pipefail
 
 r2_require_cmd() {
@@ -99,8 +100,13 @@ EOF
   export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-auto}"
 }
 
-# Parse cluster/<env>/env.hcl into the R2_* env vars used by every script.
-# Requires hcl2json (brew install hcl2json) so we don't reimplement HCL parsing.
+# Resolve project-global R2 settings from cluster/root.hcl and per-env overrides
+# from cluster/<env>/env.hcl. Mirrors the precedence used by Terragrunt itself:
+#   r2_account_id, r2_bucket  ⇐ root.hcl (project-global; not overrideable)
+#   r2_aws_profile            ⇐ env.hcl if set, else r2_aws_profile_default in root.hcl
+#   secrets key               ⇐ "secrets/<env-folder-name>/secrets.json"
+#
+# Requires hcl2json (brew install hcl2json) so we don't hand-parse HCL.
 r2_load_env() {
   local env_dir="${ENV_DIR:-}"
   if [[ -z "$env_dir" ]]; then
@@ -117,38 +123,47 @@ r2_load_env() {
     exit 1
   fi
 
+  # cluster/root.hcl is one level above the env folder.
+  local root_file
+  root_file="$(cd "$env_dir/.." && pwd)/root.hcl"
+  if [[ ! -f "$root_file" ]]; then
+    printf 'error: %q not found\n' "$root_file" >&2
+    exit 1
+  fi
+
   r2_require_cmd hcl2json jq
 
   local env_name
   env_name="$(basename "$(cd "$env_dir" && pwd)")"
 
-  local parsed
-  parsed="$(hcl2json < "$env_file")"
+  local root_parsed env_parsed
+  root_parsed="$(hcl2json < "$root_file")"
+  env_parsed="$(hcl2json < "$env_file")"
 
-  local account_id bucket secrets_key aws_profile
-  account_id="$(jq -r '.locals[0].r2_account_id // empty' <<<"$parsed")"
-  bucket="$(jq -r '.locals[0].r2_bucket // empty' <<<"$parsed")"
-  secrets_key="$(jq -r '.locals[0].r2_secrets_key // empty' <<<"$parsed")"
-  aws_profile="$(jq -r '.locals[0].r2_aws_profile // empty' <<<"$parsed")"
+  local account_id bucket profile_default profile_override aws_profile
+  account_id="$(jq -r '.locals[0].r2_account_id // empty' <<<"$root_parsed")"
+  bucket="$(jq -r '.locals[0].r2_bucket // empty' <<<"$root_parsed")"
+  profile_default="$(jq -r '.locals[0].r2_aws_profile_default // empty' <<<"$root_parsed")"
+  profile_override="$(jq -r '.locals[0].r2_aws_profile // empty' <<<"$env_parsed")"
 
   if [[ -z "$account_id" || "$account_id" == "REPLACE_WITH_CF_ACCOUNT_ID" ]]; then
-    printf 'error: r2_account_id is unset in %q\n' "$env_file" >&2
+    printf 'error: r2_account_id is unset in %q\n' "$root_file" >&2
     exit 1
   fi
   if [[ -z "$bucket" ]]; then
-    printf 'error: r2_bucket is unset in %q\n' "$env_file" >&2
+    printf 'error: r2_bucket is unset in %q\n' "$root_file" >&2
     exit 1
   fi
 
-  # secrets_key uses HCL interpolation (${local.environment}); resolve it manually.
-  secrets_key="${secrets_key//\$\{local.environment\}/$env_name}"
-  if [[ -z "$secrets_key" ]]; then
-    secrets_key="secrets/$env_name/secrets.json"
+  if [[ -n "$profile_override" ]]; then
+    aws_profile="$profile_override"
+  else
+    aws_profile="$profile_default"
   fi
 
   export R2_ACCOUNT_ID="$account_id"
   export R2_BUCKET="$bucket"
-  export R2_SECRETS_KEY="$secrets_key"
+  export R2_SECRETS_KEY="secrets/${env_name}/secrets.json"
   export R2_ENDPOINT="https://${account_id}.r2.cloudflarestorage.com"
   export R2_ENV_NAME="$env_name"
   export R2_AWS_PROFILE="$aws_profile"

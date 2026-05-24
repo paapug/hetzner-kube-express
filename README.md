@@ -44,14 +44,13 @@ You need: a Cloudflare R2 bucket and an R2 API token with read+write.
    ```bash
    brew install terraform terragrunt awscli jq hcl2json
    ```
-2. Configure the AWS profile (the profile name is in [cluster/dev/env.hcl](cluster/dev/env.hcl) as `r2_aws_profile`).
+2. Set R2 details in [cluster/root.hcl](cluster/root.hcl): `r2_account_id`, `r2_bucket`, `r2_aws_profile_default`. These apply to every environment.
+3. Configure the AWS profile in `~/.aws/credentials` using the name from `r2_aws_profile_default`.
    ```ini
-   # ~/.aws/credentials
    [r2-hetzner-k8s-playground]
    aws_access_key_id     = <r2-access-key-id>
    aws_secret_access_key = <r2-secret-access-key>
    ```
-3. Set R2 details in [cluster/dev/env.hcl](cluster/dev/env.hcl): `r2_account_id`, `r2_bucket`.
 4. Create `secrets.json` in R2 (generates the cluster SSH key, asks for your Hetzner token).
    ```bash
    ENV_DIR=cluster/dev cluster/_scripts/r2-bootstrap.sh
@@ -74,7 +73,7 @@ Share with teammates: the AWS profile keys (via password manager).
    ```bash
    brew install terraform terragrunt awscli jq hcl2json
    ```
-2. Get the R2 keys from the cluster owner. Add them to `~/.aws/credentials`:
+2. Get the R2 keys from the cluster owner. Add them to `~/.aws/credentials` under the profile name from [cluster/root.hcl](cluster/root.hcl) (`r2_aws_profile_default`):
    ```ini
    [r2-hetzner-k8s-playground]
    aws_access_key_id     = <from-owner>
@@ -147,7 +146,7 @@ The default uses `~/.aws/credentials`. Override with one of these when you need 
 
 Helper scripts in `cluster/_scripts/` auto-load `<repo>/.env` and `<env>/.env` (no direnv needed).
 
-Precedence: `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY` > `AWS_PROFILE` > `r2_aws_profile` from `env.hcl`.
+Precedence: `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY` > `AWS_PROFILE` > `r2_aws_profile` from `env.hcl` > `r2_aws_profile_default` from `root.hcl`.
 
 `.env`, `.env.*`, `.envrc`, `*.tfstate*`, `.cluster_ssh/`, `**/.terragrunt-cache/` are gitignored.
 
