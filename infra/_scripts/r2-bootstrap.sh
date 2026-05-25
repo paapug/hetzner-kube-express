@@ -50,12 +50,13 @@ if [[ -z "$HCLOUD_TOKEN" ]]; then
   exit 1
 fi
 
-# Cloudflare API token is optional at bootstrap time — the cloudflare-dns
-# unit will fail to apply until it's set, but the cluster/acme units don't
-# need it. Leave blank to fill in later via secrets-edit.sh.
 CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-}"
 if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
-  read -rsp "Enter Cloudflare API token (Zone:DNS:Edit; blank to skip): " CLOUDFLARE_API_TOKEN; echo
+  read -rsp "Enter Cloudflare API token (DNS Read & Write; zone-scoped): " CLOUDFLARE_API_TOKEN; echo
+fi
+if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
+  echo "error: empty cloudflare api token" >&2
+  exit 1
 fi
 
 SECRETS="$TMPDIR_SEC/secrets.json"
@@ -84,5 +85,5 @@ Bootstrapped s3://${R2_BUCKET}/${R2_SECRETS_KEY}.
 
 Next steps:
   ENV_DIR=$ENV_DIR infra/_scripts/fetch-ssh-key.sh   # restore SSH key locally
-  cd $ENV_DIR && terragrunt run --all plan
+  cd $ENV_DIR && terragrunt run --all apply
 EOF

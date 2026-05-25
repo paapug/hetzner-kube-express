@@ -57,5 +57,5 @@ locals {
   # Optional: override project defaults from root.hcl.
   # r2_account_id  = "<another-cf-account-id>"
   # r2_bucket      = "<another-bucket>"
-  # r2_aws_profile = "r2-hetzner-k8s-playground-prod"
+  # r2_aws_profile = "r2-hetzner-kube-express-prod"
 }

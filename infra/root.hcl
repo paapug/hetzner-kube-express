@@ -4,13 +4,13 @@
 # Secrets key: secrets/<env>/secrets.json
 
 locals {
-  project_name = "hetzner-k8s-playground"
+  project_name = "hetzner-kube-express"
 
   # Project-global R2 settings. Bucket + account id + AWS profile defaults live
   # here and are the same for every env unless an env opts to override them.
   r2_account_id_default  = "REPLACE_WITH_CF_ACCOUNT_ID"
   r2_bucket_default      = "REPLACE_WITH_R2_BUCKET"
-  r2_aws_profile_default = "r2-hetzner-k8s-playground"
+  r2_aws_profile_default = "r2-hetzner-kube-express"
 
   # Per-env values (cluster_name, argocd_*, acme_*, optional r2_* overrides).
   env_hcl_path = find_in_parent_folders("env.hcl")
