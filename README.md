@@ -79,6 +79,12 @@ Share with teammates: the AWS profile keys (via password manager).
    terragrunt run --all plan
    ```
 
+## 🆕 Adding a new environment
+
+1. Copy the `infra/dev` folder to a new environment folder.
+2. Edit the `infra/<new-env>/env.hcl` file to set the new environment name and values.
+3. Run `terragrunt run --all apply` inside the new environment folder to apply the new environment.
+
 ---
 
 ## 📅 Daily use
