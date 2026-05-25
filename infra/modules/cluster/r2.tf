@@ -55,10 +55,12 @@ resource "aws_s3_object" "kubeconfig" {
   content      = module.kube-hetzner.kubeconfig
   content_type = "application/yaml"
 
-  # Folding the CA fingerprint into the etag means any server-CA rotation is
-  # surfaced as a content change, even if other bytes of the kubeconfig YAML
-  # happen to round-trip identically through kube-hetzner's renderer.
-  etag = md5("${module.kube-hetzner.kubeconfig}\n${local.kubeconfig_ca_sha256}")
+  # source_hash (not etag) drives updates: R2's server-side ETag isn't a
+  # content MD5, so the AWS provider's refresh of `etag` overwrites state
+  # and produces drift every plan. source_hash lives only in state, so it
+  # stays stable. Folding the CA fingerprint in still surfaces CA rotation
+  # as a content change.
+  source_hash = md5("${module.kube-hetzner.kubeconfig}\n${local.kubeconfig_ca_sha256}")
 
   metadata = {
     "k3s-server-ca-sha256" = local.kubeconfig_ca_sha256

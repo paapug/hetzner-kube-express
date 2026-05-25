@@ -44,7 +44,7 @@ locals {
   }
 
   cert_manager = {
-    acme_email       = "jakub@papug.sh"
+    acme_email       = "you@example.com"
     acme_use_staging = false
   }
 

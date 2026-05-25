@@ -23,7 +23,7 @@ You need:
 
 - a Hetzner API token with `Read` and `Write` on the project you want to use
 - a Cloudflare R2 bucket and an R2 API token with read+write
-- a Cloudflare API token with `DNS Read` and `DNS Write` on the zone that owns `cluster_domain`, and that zone's ID (do not mistake it for the account ID often visible in the URL!)
+- a Cloudflare API token with `DNS Read` and `DNS Write` on the zone that owns `cloudflare.domain`, and that zone's ID (do not mistake it for the account ID often visible in the URL!)
 
 1. Install tools.
    ```bash
@@ -36,12 +36,13 @@ You need:
    aws_access_key_id     = <r2-access-key-id>
    aws_secret_access_key = <r2-secret-access-key>
    ```
-4. Set `cloudflare_zone_id` in [infra/dev/env.hcl](infra/dev/env.hcl) to the zone ID that owns `cluster_domain`.
-5. Bootstrap the environment (generates the cluster SSH key, asks for Hetzner + Cloudflare tokens, uploads `secrets.json` to R2, and builds the kube-hetzner MicroOS snapshot via packer if one isn't already present in the Hetzner project).
+4. Set `cloudflare_zone_id` in [infra/dev/env.hcl](infra/dev/env.hcl) to the zone ID that owns `cloudflare.domain`.
+5. Set `cert_manager.acme_email` in [infra/dev/env.hcl](infra/dev/env.hcl) to the email address to use for Let's Encrypt certificates.
+6. Bootstrap the environment (generates the cluster SSH key, asks for Hetzner + Cloudflare tokens, uploads `secrets.json` to R2, and builds the kube-hetzner MicroOS snapshot via packer if one isn't already present in the Hetzner project).
    ```bash
    ENV_DIR=infra/dev infra/_scripts/env-bootstrap.sh
    ```
-6. Apply.
+7. Apply.
    ```bash
    cd infra/dev
    terragrunt run --all apply
