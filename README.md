@@ -1,10 +1,23 @@
-# hetzner-kube-express
+# 📖 About the project
 
-An opinionated, cheap, startup-ready Kubernetes platform on Hetzner Cloud driven by Terragrunt.
+An opinionated, batteries-included, startup-ready Kubernetes platform on Hetzner Cloud driven by Terragrunt.
 
-# Usage
+## 📦 Features
 
-## Initial setup (cluster owner, once)
+- Out-of-the-box GitOps with [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
+- Automatic Let's Encrypt TLS certificates via [Cert-Manager](https://cert-manager.io/)
+- Ingress via [Traefik](https://traefik.io/), exposed on every node IP by [Klipper](https://klipper.sh/)
+- Cloudflare [DNS](https://developers.cloudflare.com/dns/) records wired up automatically
+- Remote state and secrets stored in Cloudflare [R2](https://developers.cloudflare.com/r2/)
+
+## 🧱 Built on
+
+- [kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner) - k3s on Hetzner Cloud
+- [Terragrunt](https://terragrunt.gruntwork.io/) - orchestrates the Terraform units
+
+# 🚀 Usage
+
+## 🛠️ Initial setup (cluster owner, once)
 
 You need:
 
@@ -40,7 +53,7 @@ Share with teammates: the AWS profile keys (via password manager).
 
 ---
 
-## Joining as a teammate
+## 🤝 Joining as a teammate
 
 1. Install tools.
    ```bash
@@ -68,23 +81,23 @@ Share with teammates: the AWS profile keys (via password manager).
 
 ---
 
-## Daily use
+## 📅 Daily use
 
 From `infra/dev/`:
 
-| Command                                                  | What                                                                     |
-| -------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `terragrunt run --all plan`                              | Plan all units                                                           |
-| `terragrunt run --all apply`                             | Apply all units                                                          |
-| `terragrunt run --all destroy`                           | Tear down                                                                |
-| `terragrunt dag graph`                                   | Show unit dependency graph                                               |
-| `ENV_DIR=infra/dev infra/_scripts/secrets-edit.sh`       | Edit `secrets.json` in `$EDITOR` (downloads, validates JSON, re-uploads) |
-| `ENV_DIR=infra/dev infra/_scripts/fetch-ssh-key.sh`      | Restore SSH key locally                                                  |
-| `ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh`   | Fetch kubeconfig from R2; prompts whether to merge into `~/.kube/config` |
+| Command                                                | What                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `terragrunt run --all plan`                            | Plan all units                                                           |
+| `terragrunt run --all apply`                           | Apply all units                                                          |
+| `terragrunt run --all destroy`                         | Tear down                                                                |
+| `terragrunt dag graph`                                 | Show unit dependency graph                                               |
+| `ENV_DIR=infra/dev infra/_scripts/secrets-edit.sh`     | Edit `secrets.json` in `$EDITOR` (downloads, validates JSON, re-uploads) |
+| `ENV_DIR=infra/dev infra/_scripts/fetch-ssh-key.sh`    | Restore SSH key locally                                                  |
+| `ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh` | Fetch kubeconfig from R2; prompts whether to merge into `~/.kube/config` |
 
 Per unit: `cd infra/dev/<unit> && terragrunt apply`.
 
-### Get the kubeconfig
+### 🔑 Get the kubeconfig
 
 The `cluster` unit uploads the rendered kubeconfig to `s3://<r2_bucket>/secrets/<env>/kubeconfig.yaml` on every apply. Fetch it with:
 
@@ -94,19 +107,19 @@ ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
 
 The script asks whether to merge the new context into `~/.kube/config` (backs up the existing file first via `kubectl config view --flatten`, then switches `kubectl` to the new context). Decline and it writes `infra/dev/.kube/config` (mode 600) — `export KUBECONFIG=...` to use it. Set `AUTO_MERGE=1` (or `0`) to skip the prompt.
 
-### Argo CD admin password
+### 🔑 Argo CD admin password
 
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath='{.data.password}' | base64 -d; echo
 ```
 
-## Trade-offs (read before going to prod)
+## 📝 Trade-offs (read before going to prod)
 
 - Secrets (SSH keys, Hetzner token, Cloudflare API tokens, admin kubeconfig etc.) are stored in R2. Be very mindful who has access to the R2 as rotating all secrets will be time-consuming.
 - `cloudflare-dns` records are created with `proxied = false` so cert-manager's HTTP-01 challenge reaches Traefik directly. Don't flip it to `true` without switching the issuer to DNS-01.
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
 | Symptom                             | Fix                                                   |
 | ----------------------------------- | ----------------------------------------------------- |
