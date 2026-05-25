@@ -82,9 +82,10 @@ Share with teammates: the AWS profile keys (via password manager).
 ## 🆕 Adding a new environment
 
 1. Copy the `infra/dev` folder to a new environment folder.
-2. Edit the `infra/<new-env>/env.hcl` file to set the new environment name and values.
-3. Re-run `ENV_DIR=infra/<new-env> infra/_scripts/env-bootstrap.sh` to bootstrap new `secrets.json`. The packer snapshot build is auto-skipped if the Hetzner project already has one (e.g. when the new env shares a Hetzner token with an existing env).
-4. Run `terragrunt run --all apply` inside the new environment folder to apply the new environment.
+2. (Optional) Create a new R2 bucket and new Hetzner project
+3. Edit the `infra/<new-env>/env.hcl` file to set the new environment values.
+4. Re-run `ENV_DIR=infra/<new-env> infra/_scripts/env-bootstrap.sh` to bootstrap new `secrets.json`. The packer snapshot build is auto-skipped if the Hetzner project already has one (e.g. when the new env shares a Hetzner token with an existing env).
+5. Run `terragrunt run --all apply` inside the new environment folder to apply the new environment.
 
 ---
 
