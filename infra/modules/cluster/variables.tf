@@ -30,6 +30,40 @@ variable "r2_aws_profile" {
   default     = ""
 }
 
+variable "network_region" {
+  type        = string
+  description = "Hetzner network region for the cluster's private network (e.g. eu-central, us-east, us-west)."
+}
+
+variable "control_plane_nodepools" {
+  type = list(object({
+    name        = string
+    server_type = string
+    location    = string
+    labels      = list(string)
+    taints      = list(string)
+    count       = number
+  }))
+  description = "Control-plane nodepools passed through to kube-hetzner. Total count across pools must be odd (1/3/5) for etcd quorum."
+
+  validation {
+    condition     = sum(concat([0], [for p in var.control_plane_nodepools : p.count])) % 2 == 1
+    error_message = "Total control_plane_nodepools count must be odd (1, 3, or 5) for etcd quorum."
+  }
+}
+
+variable "agent_nodepools" {
+  type = list(object({
+    name        = string
+    server_type = string
+    location    = string
+    labels      = list(string)
+    taints      = list(string)
+    count       = number
+  }))
+  description = "Agent (worker) nodepools passed through to kube-hetzner."
+}
+
 variable "firewall_ssh_source" {
   type        = list(string)
   description = "Source CIDRs allowed to reach SSH (port 22) on cluster nodes via the Hetzner Cloud Firewall. Not a secret; lives in env.hcl."

@@ -12,6 +12,32 @@ locals {
     domain  = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
   }
 
+  hetzner = {
+    network_region = "eu-central"
+
+    control_plane_nodepools = [
+      {
+        name        = "control-plane-fsn1"
+        server_type = "cx23"
+        location    = "fsn1"
+        labels      = []
+        taints      = []
+        count       = 1
+      },
+    ]
+
+    agent_nodepools = [
+      {
+        name        = "worker-fsn1"
+        server_type = "cx23"
+        location    = "fsn1"
+        labels      = []
+        taints      = []
+        count       = 2
+      },
+    ]
+  }
+
   hetzner_firewall = {
     ssh_source      = ["0.0.0.0/0", "::/0"]
     kube_api_source = ["0.0.0.0/0", "::/0"]

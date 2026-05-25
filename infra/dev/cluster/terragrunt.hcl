@@ -27,6 +27,10 @@ inputs = {
   r2_kubeconfig_key = include.root.locals.r2_kubeconfig_key
   r2_aws_profile    = include.root.locals.r2_aws_profile
 
+  network_region          = local.env.locals.hetzner.network_region
+  control_plane_nodepools = local.env.locals.hetzner.control_plane_nodepools
+  agent_nodepools         = local.env.locals.hetzner.agent_nodepools
+
   firewall_ssh_source      = local.env.locals.hetzner_firewall.ssh_source
   firewall_kube_api_source = local.env.locals.hetzner_firewall.kube_api_source
 }

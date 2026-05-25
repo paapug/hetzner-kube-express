@@ -15,7 +15,7 @@ module "kube-hetzner" {
   ssh_private_key = local.secrets.ssh_private_key
 
   cluster_name   = var.cluster_name
-  network_region = "eu-central"
+  network_region = var.network_region
 
   # --- Cilium: kube-proxy replacement + Hubble ---
   cni_plugin            = "cilium"
@@ -29,27 +29,8 @@ module "kube-hetzner" {
   enable_klipper_metal_lb = true
   load_balancer_location  = "fsn1"
 
-  control_plane_nodepools = [
-    {
-      name        = "control-plane-fsn1"
-      server_type = "cx23"
-      location    = "fsn1"
-      labels      = []
-      taints      = []
-      count       = 1
-    },
-  ]
-
-  agent_nodepools = [
-    {
-      name        = "worker-fsn1"
-      server_type = "cx23"
-      location    = "fsn1"
-      labels      = []
-      taints      = []
-      count       = 2
-    },
-  ]
+  control_plane_nodepools = var.control_plane_nodepools
+  agent_nodepools         = var.agent_nodepools
 
   automatically_upgrade_os  = false
   automatically_upgrade_k3s = false
