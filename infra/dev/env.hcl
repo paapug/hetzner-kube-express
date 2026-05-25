@@ -44,7 +44,7 @@ locals {
   }
 
   cert_manager = {
-    acme_email       = "you@example.com"
+    acme_email       = "REPLACE_WITH_OPERATOR_EMAIL"
     acme_use_staging = false
   }
 
