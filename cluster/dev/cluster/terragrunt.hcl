@@ -27,6 +27,6 @@ inputs = {
   r2_kubeconfig_key = include.root.locals.r2_kubeconfig_key
   r2_aws_profile    = include.root.locals.r2_aws_profile
 
-  firewall_ssh_source      = local.env.locals.firewall_ssh_source
-  firewall_kube_api_source = local.env.locals.firewall_kube_api_source
+  firewall_ssh_source      = local.env.locals.hetzner_firewall.ssh_source
+  firewall_kube_api_source = local.env.locals.hetzner_firewall.kube_api_source
 }

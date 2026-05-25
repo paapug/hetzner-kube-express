@@ -9,7 +9,13 @@ include "root" {
 }
 
 locals {
-  env = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  env     = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  enabled = try(local.env.locals.argocd.enabled, true)
+}
+
+exclude {
+  if      = !local.enabled
+  actions = ["all"]
 }
 
 terraform {
@@ -48,6 +54,6 @@ dependency "cloudflare_dns" {
 inputs = {
   kubeconfig           = dependency.cluster.outputs.kubeconfig
   acme_issuer_name     = dependency.acme.outputs.issuer_name
-  argocd_chart_version = local.env.locals.argocd_chart_version
-  argocd_host          = local.env.locals.argocd_host
+  argocd_chart_version = local.env.locals.argocd.chart_version
+  argocd_host          = local.env.locals.argocd.host
 }

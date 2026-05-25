@@ -38,6 +38,15 @@ locals {
 
 # Persist the rendered kubeconfig to R2 so teammates can fetch it without
 # running terraform.
+locals {
+  _kubeconfig_yaml = yamldecode(module.kube-hetzner.kubeconfig)
+
+  # k3s always emits exactly one cluster entry; index 0 is safe.
+  kubeconfig_ca_sha256 = sha256(
+    base64decode(local._kubeconfig_yaml.clusters[0].cluster["certificate-authority-data"])
+  )
+}
+
 resource "aws_s3_object" "kubeconfig" {
   provider = aws.r2
 
@@ -46,6 +55,12 @@ resource "aws_s3_object" "kubeconfig" {
   content      = module.kube-hetzner.kubeconfig
   content_type = "application/yaml"
 
-  # etag forces a PUT only when the rendered kubeconfig actually changes;
-  etag = md5(module.kube-hetzner.kubeconfig)
+  # Folding the CA fingerprint into the etag means any server-CA rotation is
+  # surfaced as a content change, even if other bytes of the kubeconfig YAML
+  # happen to round-trip identically through kube-hetzner's renderer.
+  etag = md5("${module.kube-hetzner.kubeconfig}\n${local.kubeconfig_ca_sha256}")
+
+  metadata = {
+    "k3s-server-ca-sha256" = local.kubeconfig_ca_sha256
+  }
 }

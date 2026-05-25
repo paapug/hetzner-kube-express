@@ -30,10 +30,10 @@ dependency "cluster" {
 }
 
 inputs = {
-  cloudflare_zone_id = local.env.locals.cloudflare_zone_id
+  cloudflare_zone_id = local.env.locals.cloudflare.zone_id
 
   records = {
-    (local.env.locals.argocd_host) = dependency.cluster.outputs.agents_public_ipv4
+    (local.env.locals.argocd.host) = dependency.cluster.outputs.agents_public_ipv4
   }
 
   r2_account_id  = include.root.locals.r2_account_id

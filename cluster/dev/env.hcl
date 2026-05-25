@@ -5,20 +5,28 @@
 # env needs different values (e.g. prod with a separate bucket and IAM token).
 
 locals {
-  cluster_name       = "k8s-playground"
-  cluster_domain     = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
-  cloudflare_zone_id = "REPLACE_WITH_CLOUDFLARE_ZONE_ID" # Cloudflare zone that owns ${cluster_domain}.
+  cluster_name = "k8s-playground"
 
-  argocd_chart_version = "9.5.15"
-  argocd_host          = "argocd.${local.cluster_domain}"
+  cloudflare = {
+    zone_id = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
+    domain  = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
+  }
 
-  acme_email       = "jakub@papug.sh"
-  acme_use_staging = true
+  hetzner_firewall = {
+    ssh_source      = ["0.0.0.0/0", "::/0"]
+    kube_api_source = ["0.0.0.0/0", "::/0"]
+  }
 
-  # Hetzner Cloud Firewall source CIDRs.
-  # Tighten per-env (e.g. office/VPN ranges) before going prod.
-  firewall_ssh_source      = ["0.0.0.0/0", "::/0"]
-  firewall_kube_api_source = ["0.0.0.0/0", "::/0"]
+  cert_manager = {
+    acme_email       = "jakub@papug.sh"
+    acme_use_staging = false
+  }
+
+  argocd = {
+    enabled       = true
+    chart_version = "9.5.15"
+    host          = "argocd.${local.cloudflare.domain}"
+  }
 
   # Optional: override project defaults from root.hcl.
   # r2_account_id  = "<another-cf-account-id>"

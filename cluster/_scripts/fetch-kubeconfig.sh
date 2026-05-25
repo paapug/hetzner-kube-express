@@ -97,9 +97,13 @@ else
 fi
 
 MERGED="$TMPDIR_KCFG/merged"
-# KUBECONFIG with a single path is fine; with two it's the merge input list.
+# `kubectl config view --flatten` merges using FIRST-WINS semantics on name
+# collisions (cluster/user/context). The freshly-downloaded kubeconfig must
+# therefore come BEFORE the existing ~/.kube/config in KUBECONFIG so that a
+# rotated k3s server CA, updated user token, or moved API endpoint actually
+# replaces the stale entry instead of being silently shadowed by it.
 if [[ -n "$EXISTING" ]]; then
-  KUBECONFIG="${EXISTING}:${REMOTE}" kubectl config view --flatten > "$MERGED"
+  KUBECONFIG="${REMOTE}:${EXISTING}" kubectl config view --flatten > "$MERGED"
 else
   KUBECONFIG="$REMOTE" kubectl config view --flatten > "$MERGED"
 fi
@@ -122,5 +126,41 @@ if [[ -n "$NEW_CONTEXTS" ]]; then
   if [[ -n "$FIRST_CTX" ]]; then
     kubectl config use-context "$FIRST_CTX" >/dev/null
     printf '\nSwitched current context to: %s\n' "$FIRST_CTX" >&2
+
+    # Sanity check: did the merge actually install the CA we just downloaded?
+    # kubectl's --flatten uses first-wins merge semantics, so a previously
+    # existing entry with the same cluster name (e.g. left over from before a
+    # k3s server CA rotation) can shadow the new one. Catch that here.
+    if command -v openssl >/dev/null 2>&1; then
+      remote_ca_fp="$(
+        KUBECONFIG="$REMOTE" kubectl config view --raw --minify --context "$FIRST_CTX" \
+          -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' 2>/dev/null \
+        | base64 -d 2>/dev/null \
+        | openssl x509 -noout -fingerprint -sha256 2>/dev/null \
+        | sed 's/^.*=//'
+      )"
+      merged_ca_fp="$(
+        kubectl config view --raw --minify --context "$FIRST_CTX" \
+          -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' 2>/dev/null \
+        | base64 -d 2>/dev/null \
+        | openssl x509 -noout -fingerprint -sha256 2>/dev/null \
+        | sed 's/^.*=//'
+      )"
+      if [[ -n "$remote_ca_fp" && -n "$merged_ca_fp" && "$remote_ca_fp" != "$merged_ca_fp" ]]; then
+        cat >&2 <<EOF
+
+WARNING: the merged kubeconfig entry for context "$FIRST_CTX" still points at
+a different CA than the one in s3://${R2_BUCKET}/${KUBECONFIG_KEY}.
+
+  downloaded CA SHA-256: $remote_ca_fp
+  merged    CA SHA-256: $merged_ca_fp
+
+This usually means an old entry of the same name shadowed the new one during
+kubectl merge. Run \`kubectl config delete-cluster "$FIRST_CTX"\` (and the
+matching delete-user/delete-context) on the relevant entries in
+~/.kube/config, then re-run this script.
+EOF
+      fi
+    fi
   fi
 fi

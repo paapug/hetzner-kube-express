@@ -26,6 +26,6 @@ dependency "cluster" {
 
 inputs = {
   kubeconfig       = dependency.cluster.outputs.kubeconfig
-  acme_email       = local.env.locals.acme_email
-  acme_use_staging = local.env.locals.acme_use_staging
+  acme_email       = local.env.locals.cert_manager.acme_email
+  acme_use_staging = local.env.locals.cert_manager.acme_use_staging
 }
