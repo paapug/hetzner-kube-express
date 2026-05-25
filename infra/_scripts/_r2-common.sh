@@ -2,12 +2,12 @@
 # Shared helpers for the R2 scripts. Sourced; not executed directly.
 #
 # Reads project-global R2 settings (account, bucket, default profile) from
-# cluster/root.hcl and per-env profile override from cluster/<env>/env.hcl,
+# infra/root.hcl and per-env profile override from infra/<env>/env.hcl,
 # matching what Terragrunt itself uses at plan/apply time.
 #
 # Usage:
 #   source "$(dirname "$0")/_r2-common.sh"
-#   ENV_DIR=cluster/dev r2_load_env       # exports R2_ACCOUNT_ID/R2_BUCKET/R2_SECRETS_KEY/R2_ENDPOINT/R2_AWS_PROFILE
+#   ENV_DIR=infra/dev r2_load_env       # exports R2_ACCOUNT_ID/R2_BUCKET/R2_SECRETS_KEY/R2_ENDPOINT/R2_AWS_PROFILE
 #
 # Auth: see r2_require_aws_creds below.
 set -euo pipefail
@@ -61,7 +61,7 @@ r2_autoload_env_files() {
 # of precedence (matches the AWS SDK's own resolution chain):
 #   1. AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY in the env (or .env)
 #   2. AWS_PROFILE in the env (caller-named profile)
-#   3. R2_AWS_PROFILE from cluster/<env>/env.hcl (loaded by r2_load_env), with
+#   3. R2_AWS_PROFILE from infra/<env>/env.hcl (loaded by r2_load_env), with
 #      a matching [<profile>] entry in ~/.aws/credentials
 #
 # Call r2_load_env BEFORE this so R2_AWS_PROFILE is populated.
@@ -90,7 +90,7 @@ EOF
 error: no R2 credentials found. Provide one of:
   1. AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY (shell export, .env file, or direnv)
   2. AWS_PROFILE pointing at a profile in ~/.aws/credentials
-  3. r2_aws_profile in cluster/<env>/env.hcl + matching [profile] in ~/.aws/credentials
+  3. r2_aws_profile in infra/<env>/env.hcl + matching [profile] in ~/.aws/credentials
 See .env.example and README.md for setup details.
 EOF
     exit 1
@@ -100,8 +100,8 @@ EOF
   export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-auto}"
 }
 
-# Resolve project-global R2 settings from cluster/root.hcl and per-env overrides
-# from cluster/<env>/env.hcl. Mirrors the precedence used by Terragrunt itself:
+# Resolve project-global R2 settings from infra/root.hcl and per-env overrides
+# from infra/<env>/env.hcl. Mirrors the precedence used by Terragrunt itself:
 #   r2_account_id, r2_bucket  ⇐ env.hcl if set, else *_default in root.hcl
 #   r2_aws_profile            ⇐ env.hcl if set, else r2_aws_profile_default in root.hcl
 #   secrets key               ⇐ "secrets/<env-folder-name>/secrets.json"
@@ -110,7 +110,7 @@ EOF
 r2_load_env() {
   local env_dir="${ENV_DIR:-}"
   if [[ -z "$env_dir" ]]; then
-    echo "error: ENV_DIR is required (e.g. ENV_DIR=cluster/dev)" >&2
+    echo "error: ENV_DIR is required (e.g. ENV_DIR=infra/dev)" >&2
     exit 1
   fi
   if [[ ! -d "$env_dir" ]]; then
@@ -123,7 +123,7 @@ r2_load_env() {
     exit 1
   fi
 
-  # cluster/root.hcl is one level above the env folder.
+  # infra/root.hcl is one level above the env folder.
   local root_file
   root_file="$(cd "$env_dir/.." && pwd)/root.hcl"
   if [[ ! -f "$root_file" ]]; then

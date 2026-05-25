@@ -8,7 +8,7 @@
 # Refuses to overwrite an existing R2 object unless FORCE=1.
 #
 # Usage:
-#   ENV_DIR=cluster/dev cluster/_scripts/r2-bootstrap.sh
+#   ENV_DIR=infra/dev infra/_scripts/r2-bootstrap.sh
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,7 +23,7 @@ if r2_aws s3api head-object --bucket "$R2_BUCKET" --key "$R2_SECRETS_KEY" >/dev/
   if [[ "${FORCE:-0}" != "1" ]]; then
     cat >&2 <<EOF
 error: s3://${R2_BUCKET}/${R2_SECRETS_KEY} already exists.
-  Use cluster/_scripts/secrets-edit.sh to modify it, or rerun with FORCE=1
+  Use infra/_scripts/secrets-edit.sh to modify it, or rerun with FORCE=1
   to overwrite (rotates the cluster SSH key — irreversible).
 EOF
     exit 1
@@ -83,6 +83,6 @@ cat <<EOF
 Bootstrapped s3://${R2_BUCKET}/${R2_SECRETS_KEY}.
 
 Next steps:
-  ENV_DIR=$ENV_DIR cluster/_scripts/fetch-ssh-key.sh   # restore SSH key locally
+  ENV_DIR=$ENV_DIR infra/_scripts/fetch-ssh-key.sh   # restore SSH key locally
   cd $ENV_DIR && terragrunt run --all plan
 EOF

@@ -2,7 +2,7 @@
 #
 # Auth: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are read from the shell env
 # automatically (no static creds in code). The same env vars also feed the
-# Terragrunt s3 backend in cluster/root.hcl, so one credential set covers
+# Terragrunt s3 backend in infra/root.hcl, so one credential set covers
 # both state and secrets.
 
 provider "aws" {

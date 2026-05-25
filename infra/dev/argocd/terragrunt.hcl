@@ -5,7 +5,8 @@
 #   - acme:    issuer_name to annotate the Ingress with
 
 include "root" {
-  path = find_in_parent_folders("root.hcl")
+  path   = find_in_parent_folders("root.hcl")
+  expose = true
 }
 
 locals {
@@ -19,7 +20,7 @@ exclude {
 }
 
 terraform {
-  source = "${get_repo_root()}/cluster/modules/argocd"
+  source = "${get_repo_root()}/infra/modules/argocd"
 }
 
 dependency "cluster" {
@@ -56,4 +57,9 @@ inputs = {
   acme_issuer_name     = dependency.acme.outputs.issuer_name
   argocd_chart_version = local.env.locals.argocd.chart_version
   argocd_host          = local.env.locals.argocd.host
+
+  r2_account_id             = include.root.locals.r2_account_id
+  r2_bucket                 = include.root.locals.r2_bucket
+  r2_aws_profile            = include.root.locals.r2_aws_profile
+  r2_argocd_credentials_key = include.root.locals.r2_argocd_credentials_key
 }

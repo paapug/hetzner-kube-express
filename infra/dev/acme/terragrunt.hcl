@@ -12,7 +12,7 @@ locals {
 }
 
 terraform {
-  source = "${get_repo_root()}/cluster/modules/acme"
+  source = "${get_repo_root()}/infra/modules/acme"
 }
 
 dependency "cluster" {

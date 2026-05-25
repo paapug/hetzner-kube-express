@@ -3,7 +3,7 @@
 *.tfstate.*
 terraform.tfvars
 
-# Terragrunt local cache (per cluster/root.hcl). State itself lives in R2.
+# Terragrunt local cache (per infra/root.hcl). State itself lives in R2.
 **/.terragrunt-cache/
 
 # Per-developer R2 token / env files
@@ -26,3 +26,6 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# Cursor Plans
+.cursor/plans/

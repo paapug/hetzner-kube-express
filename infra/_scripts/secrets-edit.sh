@@ -5,7 +5,7 @@
 # Tempfile is wiped on exit (EXIT/INT/TERM/HUP).
 #
 # Usage:
-#   ENV_DIR=cluster/dev cluster/_scripts/secrets-edit.sh
+#   ENV_DIR=infra/dev infra/_scripts/secrets-edit.sh
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

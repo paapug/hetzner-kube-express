@@ -17,7 +17,7 @@ locals {
 }
 
 terraform {
-  source = "${get_repo_root()}/cluster/modules/cloudflare-dns"
+  source = "${get_repo_root()}/infra/modules/cloudflare-dns"
 }
 
 dependency "cluster" {

@@ -1,9 +1,9 @@
 # Hetzner + k3s cluster via kube-hetzner.
 #
 # Sensitive inputs (hcloud_token, ssh keys) are read at plan/apply time from R2
-# by data.aws_s3_object.secrets in the module (see cluster/modules/cluster/r2.tf).
+# by data.aws_s3_object.secrets in the module (see infra/modules/cluster/r2.tf).
 # Non-secret per-env config (firewall CIDRs, etc.) comes from env.hcl. R2
-# settings come from cluster/root.hcl; we expose its locals here so we can pass
+# settings come from infra/root.hcl; we expose its locals here so we can pass
 # them as inputs to the module.
 
 include "root" {
@@ -16,7 +16,7 @@ locals {
 }
 
 terraform {
-  source = "${get_repo_root()}/cluster/modules/cluster"
+  source = "${get_repo_root()}/infra/modules/cluster"
 }
 
 inputs = {

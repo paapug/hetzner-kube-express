@@ -2,7 +2,7 @@
 # Restore the cluster SSH key locally from R2 secrets.json (for ssh(1)/scp).
 #
 # Usage:
-#   ENV_DIR=cluster/dev cluster/_scripts/fetch-ssh-key.sh
+#   ENV_DIR=infra/dev infra/_scripts/fetch-ssh-key.sh
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,7 +1,7 @@
 # Per-environment locals (non-secret).
 #
 # Project defaults for R2 bucket / account id / AWS profile live in
-# cluster/root.hcl as `r2_*_default`. Override any of them here only if this
+# infra/root.hcl as `r2_*_default`. Override any of them here only if this
 # env needs different values (e.g. prod with a separate bucket and IAM token).
 
 locals {

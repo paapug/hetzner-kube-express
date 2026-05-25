@@ -2,12 +2,12 @@
 # Fetch the cluster kubeconfig from R2 and optionally merge into ~/.kube/config.
 #
 # Source object: s3://<r2_bucket>/secrets/<env>/kubeconfig.yaml
-#   (uploaded by the `cluster` unit on apply; see cluster/modules/cluster/r2.tf)
+#   (uploaded by the `cluster` unit on apply; see infra/modules/cluster/r2.tf)
 #
 # Usage:
-#   ENV_DIR=cluster/dev cluster/_scripts/fetch-kubeconfig.sh
-#   AUTO_MERGE=1 ENV_DIR=cluster/dev cluster/_scripts/fetch-kubeconfig.sh   # non-interactive yes
-#   AUTO_MERGE=0 ENV_DIR=cluster/dev cluster/_scripts/fetch-kubeconfig.sh   # non-interactive no
+#   ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
+#   AUTO_MERGE=1 ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh   # non-interactive yes
+#   AUTO_MERGE=0 ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh   # non-interactive no
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
