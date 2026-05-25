@@ -27,7 +27,7 @@ You need:
 
 1. Install tools.
    ```bash
-   brew install terraform terragrunt awscli jq hcl2json
+   brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
    ```
 2. Set R2 details in [infra/root.hcl](infra/root.hcl): `r2_account_id_default`, `r2_bucket_default`, `r2_aws_profile_default`. These apply to every environment unless an `env.hcl` overrides them.
 3. Configure the AWS profile in `~/.aws/credentials` using the name from `r2_aws_profile_default`.
@@ -37,9 +37,9 @@ You need:
    aws_secret_access_key = <r2-secret-access-key>
    ```
 4. Set `cloudflare_zone_id` in [infra/dev/env.hcl](infra/dev/env.hcl) to the zone ID that owns `cluster_domain`.
-5. Create `secrets.json` in R2 (generates the cluster SSH key, asks for your Hetzner token and Cloudflare API token).
+5. Bootstrap the environment (generates the cluster SSH key, asks for Hetzner + Cloudflare tokens, uploads `secrets.json` to R2, and builds the kube-hetzner MicroOS snapshot via packer if one isn't already present in the Hetzner project).
    ```bash
-   ENV_DIR=infra/dev infra/_scripts/r2-bootstrap.sh
+   ENV_DIR=infra/dev infra/_scripts/env-bootstrap.sh
    ```
 6. Apply.
    ```bash
@@ -47,7 +47,7 @@ You need:
    terragrunt run --all apply
    ```
 
-First apply is ~10–20 min (kube-hetzner builds a MicroOS snapshot).
+Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
 
 Share with teammates: the AWS profile keys (via password manager).
 
@@ -57,7 +57,7 @@ Share with teammates: the AWS profile keys (via password manager).
 
 1. Install tools.
    ```bash
-   brew install terraform terragrunt awscli jq hcl2json
+   brew install hashicorp/tap/terraform terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
    ```
 2. Get the R2 keys from the cluster owner. Add them to `~/.aws/credentials` under the profile name from [infra/root.hcl](infra/root.hcl) (`r2_aws_profile_default`):
    ```ini
@@ -83,7 +83,7 @@ Share with teammates: the AWS profile keys (via password manager).
 
 1. Copy the `infra/dev` folder to a new environment folder.
 2. Edit the `infra/<new-env>/env.hcl` file to set the new environment name and values.
-3. Re-run `ENV_DIR=infra/<new-env> infra/_scripts/r2-bootstrap.sh` to bootsrap new secrets.json.
+3. Re-run `ENV_DIR=infra/<new-env> infra/_scripts/env-bootstrap.sh` to bootstrap new `secrets.json`. The packer snapshot build is auto-skipped if the Hetzner project already has one (e.g. when the new env shares a Hetzner token with an existing env).
 4. Run `terragrunt run --all apply` inside the new environment folder to apply the new environment.
 
 ---
@@ -132,4 +132,4 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 | ------------------------------------------------- | ----------------------------------------------------- |
 | `no R2 credentials found`                         | Set up `~/.aws/credentials` (step 2) or use a `.env`. |
 | `403 AccessDenied` on init                        | R2 token lacks read+write on the bucket.              |
-| Object (.../secrets.json): couldn't find resource | Owner hasn't run `r2-bootstrap.sh` for this env.      |
+| Object (.../secrets.json): couldn't find resource | Owner hasn't run `env-bootstrap.sh` for this env.     |

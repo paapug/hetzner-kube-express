@@ -39,7 +39,7 @@ Apply DAG: `cluster` → (`acme`, `cloudflare-dns` in parallel) → `argocd`.
 - New shared logic goes in `infra/modules/<name>/` as a normal TF module. New per-env wiring goes in `infra/<env>/<name>/terragrunt.hcl`.
 - Read R2 / env values via `include.root.locals.*` and `read_terragrunt_config(find_in_parent_folders("env.hcl"))`. Don't hardcode account IDs, buckets, or hostnames in modules.
 - Cross-unit values flow through `dependency "<unit>"`. Always provide `mock_outputs` + `mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]` so `plan` works on a fresh clone.
-- Sensitive inputs (Hetzner token, SSH keys, Cloudflare API token) come from `secrets.json` in R2 via the `aws.r2` provider — never from variables, env vars in HCL, or git. Acceptable secret keys are documented in `infra/_scripts/r2-bootstrap.sh`.
+- Sensitive inputs (Hetzner token, SSH keys, Cloudflare API token) come from `secrets.json` in R2 via the `aws.r2` provider — never from variables, env vars in HCL, or git. Acceptable secret keys are documented in `infra/_scripts/env-bootstrap.sh`.
 - Adding a new env = `cp -r infra/dev infra/<new-env>` and edit `env.hcl`. Don't fork module code per env.
 
 ### Wiring a new module
@@ -66,7 +66,7 @@ Terragrunt side (`infra/<env>/<name>/terragrunt.hcl`):
 ### Shell scripts (`infra/_scripts/`)
 - All scripts: `set -euo pipefail`, source `_r2-common.sh`, and use `r2_require_cmd`, `r2_load_env`, `r2_require_aws_creds` for setup.
 - Use `$EDITOR`, `mktemp -d`, mode 600/700 perms, and a `trap … EXIT INT TERM HUP` cleanup for anything touching secrets.
-- Don't add new dependencies. The stack today: `bash`, `aws`, `jq`, `hcl2json`, `kubectl`, `ssh-keygen`, `openssl`. Anything else needs justification.
+- Don't add new dependencies. The stack today: `bash`, `aws`, `jq`, `hcl2json`, `kubectl`, `ssh-keygen`, `openssl`, plus `packer` + `hcloud` (bootstrap-only, used by `env-bootstrap.sh` to build the MicroOS snapshot — not invoked by any day-to-day script). Anything else needs justification.
 
 ### Security / cost defaults (don't quietly regress)
 - `enable_klipper_metal_lb = true` (no Hetzner LB cost). Don't switch to a managed LB without a clear reason.

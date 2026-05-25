@@ -21,6 +21,8 @@ r2_require_cmd() {
         aws) echo "  Install: brew install awscli" >&2 ;;
         jq)  echo "  Install: brew install jq" >&2 ;;
         hcl2json) echo "  Install: brew install hcl2json" >&2 ;;
+        packer) echo "  Install: brew install hashicorp/tap/packer" >&2 ;;
+        hcloud) echo "  Install: brew install hcloud" >&2 ;;
       esac
       exit 1
     fi
