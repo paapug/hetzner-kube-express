@@ -9,6 +9,7 @@ An opinionated, batteries-included, startup-ready Kubernetes platform on Hetzner
 - Ingress via [Traefik](https://traefik.io/), exposed on every node IP by [Klipper](https://klipper.sh/)
 - Cloudflare [DNS](https://developers.cloudflare.com/dns/) records wired up automatically
 - Remote state and secrets stored in Cloudflare [R2](https://developers.cloudflare.com/r2/)
+- PostgreSQL operator via [CloudNativePG](https://cloudnative-pg.io/) ready for declarative DB clusters
 
 ## 🧱 Built on
 

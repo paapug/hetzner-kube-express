@@ -54,6 +54,11 @@ locals {
     host          = "argocd.${local.cloudflare.domain}"
   }
 
+  cnpg = {
+    enabled       = true
+    chart_version = "0.28.2"
+  }
+
   # Optional: override project defaults from root.hcl.
   # r2_account_id  = "<another-cf-account-id>"
   # r2_bucket      = "<another-bucket>"
