@@ -32,9 +32,10 @@ dependency "cluster" {
 inputs = {
   cloudflare_zone_id = local.env.locals.cloudflare.zone_id
 
-  records = {
-    (local.env.locals.argocd.host) = dependency.cluster.outputs.agents_public_ipv4
-  }
+  records = merge(
+    { (local.env.locals.argocd.host) = dependency.cluster.outputs.agents_public_ipv4 },
+    try({ (local.env.locals.signoz.host) = dependency.cluster.outputs.agents_public_ipv4 }, {}),
+  )
 
   r2_account_id  = include.root.locals.r2_account_id
   r2_bucket      = include.root.locals.r2_bucket

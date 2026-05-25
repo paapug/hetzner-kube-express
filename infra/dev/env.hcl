@@ -7,6 +7,9 @@
 locals {
   cluster_name = "dev"
 
+  # Used by cert-manager (Let's Encrypt) AND by SigNoz as the initial admin email.
+  operator_email = "REPLACE_WITH_OPERATOR_EMAIL"
+
   cloudflare = {
     zone_id = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
     domain  = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
@@ -33,7 +36,7 @@ locals {
         location    = "fsn1"
         labels      = []
         taints      = []
-        count       = 2
+        count       = 3
       },
     ]
   }
@@ -44,7 +47,7 @@ locals {
   }
 
   cert_manager = {
-    acme_email       = "REPLACE_WITH_OPERATOR_EMAIL"
+    acme_email       = local.operator_email
     acme_use_staging = false
   }
 
@@ -57,6 +60,15 @@ locals {
   cnpg = {
     enabled       = true
     chart_version = "0.28.2"
+  }
+
+  signoz = {
+    enabled                 = true
+    chart_version           = "0.125.0" # https://github.com/SigNoz/charts/releases
+    k8s_infra_chart_version = "0.16.0"
+    host                    = "signoz.${local.cloudflare.domain}"
+    deployment_environment  = "dev"
+    storage_class           = "hcloud-volumes"
   }
 
   # Optional: override project defaults from root.hcl.

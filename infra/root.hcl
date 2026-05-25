@@ -21,6 +21,7 @@ locals {
   r2_secrets_key            = "secrets/${local.environment}/secrets.json"
   r2_kubeconfig_key         = "secrets/${local.environment}/kubeconfig.yaml"
   r2_argocd_credentials_key = "secrets/${local.environment}/argocd.json"
+  r2_signoz_credentials_key = "secrets/${local.environment}/signoz.json"
 
   # Honor per-env overrides if set; otherwise fall back to the project defaults.
   r2_account_id  = lookup(local.env.locals, "r2_account_id", local.r2_account_id_default)
