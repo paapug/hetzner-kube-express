@@ -5,8 +5,7 @@
 # env needs different values (e.g. prod with a separate bucket and IAM token).
 
 locals {
-  # Derive cluster_name from the env folder name (e.g. infra/dev -> "dev").
-  cluster_name = basename(dirname(find_in_parent_folders("env.hcl")))
+  cluster_name = "dev"
 
   cloudflare = {
     zone_id = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
