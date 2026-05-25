@@ -123,7 +123,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 ## 📝 Trade-offs (read before going to prod)
 
 - Secrets (SSH keys, Hetzner token, Cloudflare API tokens, admin kubeconfig etc.) are stored in R2. Be very mindful who has access to the R2 as rotating all secrets will be time-consuming.
-- `cloudflare-dns` records are created with `proxied = false` so cert-manager's HTTP-01 challenge reaches Traefik directly. Don't flip it to `true` without switching the issuer to DNS-01.
+- `cloudflare-dns` records are created with `proxied = false` so cert-manager's HTTP-01 challenge reaches Traefik directly. Don't flip it to `true` without switching the issuer to DNS-01 (currently not supported).
 
 ## 🐛 Troubleshooting
 
