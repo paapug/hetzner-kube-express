@@ -168,7 +168,7 @@ cd infra/dev/signoz && terragrunt apply
 
 - Secrets (SSH keys, Hetzner token, Cloudflare API tokens, admin kubeconfig etc.) are stored in R2. Be very mindful who has access to the R2 as rotating all secrets will be time-consuming.
 - `cloudflare-dns` records are created with `proxied = false` so cert-manager's HTTP-01 challenge reaches Traefik directly. Don't flip it to `true` without switching the issuer to DNS-01 (currently not supported).
-- SigNoz is heavy on `cx23` (ClickHouse + Zookeeper + OTel collector + frontend; ~600m CPU / ~1Gi RAM in upstream requests, no resource limits on the busy components). If you enable it on a small cluster and pods get OOMKilled, scale `agent_nodepools[].count` rather than tuning Helm requests blind.
+- SigNoz is heavy on `cx23` (no resource limits on the busy components). If you enable it on a small cluster and pods get OOMKilled, scale `agent_nodepools[].count` rather than tuning Helm requests blind.
 
 ## 🐛 Troubleshooting
 
