@@ -29,3 +29,7 @@ override.tf.json
 
 # Cursor Plans
 .cursor/plans/
+
+# Python bytecode (signoz module ships dashboards_import.py)
+__pycache__/
+*.py[cod]

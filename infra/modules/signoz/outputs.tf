@@ -4,8 +4,13 @@ output "namespace" {
 }
 
 output "otel_collector_endpoint" {
-  description = "In-cluster OTLP HTTP endpoint exposed by the bundled SigNoz collector. Use it from other workloads to ship traces/metrics/logs."
-  value       = "http://signoz-otel-collector.${kubernetes_namespace.signoz.metadata[0].name}.svc.cluster.local:4318"
+  description = "In-cluster OTLP/HTTP endpoint exposed by the bundled SigNoz collector. Use it from other workloads to ship traces/metrics/logs (e.g. OTEL_EXPORTER_OTLP_ENDPOINT)."
+  value       = local.otel_collector_endpoint
+}
+
+output "otel_collector_grpc_endpoint" {
+  description = "In-cluster OTLP/gRPC endpoint (host:port, no scheme) exposed by the bundled SigNoz collector. Use it from gRPC OTLP exporters; pair with insecure mode (no TLS in-cluster)."
+  value       = local.otel_collector_grpc_endpoint
 }
 
 output "initial_admin_email" {

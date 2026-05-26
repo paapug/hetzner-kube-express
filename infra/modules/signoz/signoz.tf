@@ -4,6 +4,12 @@ resource "kubernetes_namespace" "signoz" {
   }
 }
 
+locals {
+  otel_collector_host          = "signoz-otel-collector.${kubernetes_namespace.signoz.metadata[0].name}.svc.cluster.local"
+  otel_collector_endpoint      = "http://${local.otel_collector_host}:4318" # OTLP/HTTP
+  otel_collector_grpc_endpoint = "${local.otel_collector_host}:4317"        # OTLP/gRPC (no scheme; use otel_insecure on the client)
+}
+
 resource "helm_release" "signoz" {
   name       = "signoz"
   namespace  = kubernetes_namespace.signoz.metadata[0].name
@@ -34,7 +40,7 @@ resource "helm_release" "k8s_infra" {
     templatefile("${path.module}/values/k8s-infra.yaml.tpl", {
       cluster_name            = var.cluster_name
       deployment_environment  = var.deployment_environment
-      otel_collector_endpoint = "http://signoz-otel-collector.${kubernetes_namespace.signoz.metadata[0].name}.svc.cluster.local:4318"
+      otel_collector_endpoint = local.otel_collector_endpoint
     })
   ]
 

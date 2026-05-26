@@ -172,3 +172,12 @@ cd infra/dev/signoz && terragrunt apply
 | `no R2 credentials found`                         | Set up `~/.aws/credentials` (step 2) or use a `.env`. |
 | `403 AccessDenied` on init                        | R2 token lacks read+write on the bucket.              |
 | Object (.../secrets.json): couldn't find resource | Owner hasn't run `env-bootstrap.sh` for this env.     |
+
+## Roadmap
+
+[x] ArgoCD
+[x] CloudNativePG operator
+[x] SigNoz observability stack
+[ ] Authentik / Zitadel
+[ ] Documentation (lol)
+[ ] CI Tests
