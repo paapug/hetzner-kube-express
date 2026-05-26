@@ -142,8 +142,6 @@ fi
 
 unset HCLOUD_TOKEN
 
-"$SCRIPT_DIR/install-git-hooks.sh"
-
 cat <<EOF
 
 Bootstrapped s3://${R2_BUCKET}/${R2_SECRETS_KEY}.
