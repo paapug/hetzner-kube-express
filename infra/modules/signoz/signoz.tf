@@ -51,3 +51,51 @@ resource "helm_release" "k8s_infra" {
 
   depends_on = [helm_release.signoz]
 }
+
+# Pre-destroy hook for the operator-vs-CHI race: helm uninstall deletes the
+# bundled Altinity clickhouse-operator alongside the ClickHouseInstallation,
+# so the CHI's finalizer.clickhouseinstallation.altinity.com is never removed
+# and Helm waits forever. While the operator is still alive, gracefully delete
+# CHIs (it removes its own finalizer); then strip any finalizers that remain
+# (defence in depth) and clear PVCs which the chart never owned.
+#
+# This resource depends on both helm releases so Terraform destroys it first.
+resource "null_resource" "signoz_destroy_prep" {
+  triggers = {
+    namespace  = kubernetes_namespace.signoz.metadata[0].name
+    kubeconfig = var.kubeconfig
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      set -euo pipefail
+      tmp="$(mktemp -d)"
+      trap 'rm -rf "$tmp"' EXIT
+      printf '%s' "${self.triggers.kubeconfig}" > "$tmp/kubeconfig"
+      chmod 600 "$tmp/kubeconfig"
+      export KUBECONFIG="$tmp/kubeconfig"
+      ns="${self.triggers.namespace}"
+
+      if ! kubectl get ns "$ns" >/dev/null 2>&1; then
+        exit 0
+      fi
+
+      # Graceful path: the operator is still running, so let it finalize the CHI.
+      kubectl -n "$ns" delete clickhouseinstallation --all --ignore-not-found --timeout=120s || true
+
+      # Belt-and-braces: anything still around (operator died, partial state, ...)
+      # gets its finalizer stripped so the API server can GC it.
+      for chi in $(kubectl -n "$ns" get clickhouseinstallation -o name 2>/dev/null || true); do
+        kubectl -n "$ns" patch "$chi" --type=merge -p '{"metadata":{"finalizers":[]}}' || true
+      done
+
+      kubectl -n "$ns" delete pvc --all --ignore-not-found --wait=false || true
+    EOT
+  }
+
+  depends_on = [
+    helm_release.signoz,
+    helm_release.k8s_infra,
+  ]
+}

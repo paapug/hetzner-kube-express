@@ -179,10 +179,18 @@ cd infra/dev/signoz && terragrunt apply
 - [x] CloudNativePG operator
 - [x] SigNoz observability stack
 - [ ] Authentik / Zitadel
+- [ ] Allow additional Helm values to be passed to the modules
 - [ ] Documentation (lol)
 - [ ] CI Tests
 - [ ] ...
 - [ ] Modular cluster provider?
+
+## Contributing
+
+Do yourself a favor and:
+
+- use staging Let's Encrypt by setting `acme_use_staging = true` in [infra/dev/env.hcl](infra/dev/env.hcl). If you are running on macOS, run `infra/_scripts/trust-le-staging.sh <enable\|disable\|status>` to trust the staging roots.
+- test both apply and destroy operations.
 
 ## License
 
