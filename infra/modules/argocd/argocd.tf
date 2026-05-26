@@ -18,3 +18,12 @@ resource "helm_release" "argocd" {
   wait            = true
   timeout         = 600
 }
+
+data "kubernetes_secret" "argocd_initial_admin" {
+  metadata {
+    name      = "argocd-initial-admin-secret"
+    namespace = kubernetes_namespace.argocd.metadata[0].name
+  }
+
+  depends_on = [helm_release.argocd]
+}

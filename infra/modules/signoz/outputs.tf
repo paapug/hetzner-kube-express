@@ -20,7 +20,7 @@ output "initial_admin_email" {
 }
 
 output "initial_admin_password" {
-  description = "Generated admin password for the first SigNoz user. Mirrored to R2 at r2_signoz_credentials_key. Rotate after first login by changing the password in the UI; the importer Job will keep working via the long-lived Service Account key."
+  description = "Generated admin password for the first SigNoz user. Rotate after first login by changing the password in the UI; the importer Job will keep working via the long-lived Service Account key."
   value       = random_password.signoz_admin.result
   sensitive   = true
 }

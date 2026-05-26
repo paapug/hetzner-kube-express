@@ -66,9 +66,4 @@ inputs = {
 
   cluster_name = local.env.locals.cluster_name
   admin_email  = local.env.locals.operator_email
-
-  r2_account_id             = include.root.locals.r2_account_id
-  r2_bucket                 = include.root.locals.r2_bucket
-  r2_aws_profile            = include.root.locals.r2_aws_profile
-  r2_signoz_credentials_key = include.root.locals.r2_signoz_credentials_key
 }

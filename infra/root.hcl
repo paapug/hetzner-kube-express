@@ -17,11 +17,9 @@ locals {
   env          = read_terragrunt_config(local.env_hcl_path)
 
   # `environment` derived from the folder holding env.hcl.
-  environment               = basename(dirname(local.env_hcl_path))
-  r2_secrets_key            = "secrets/${local.environment}/secrets.json"
-  r2_kubeconfig_key         = "secrets/${local.environment}/kubeconfig.yaml"
-  r2_argocd_credentials_key = "secrets/${local.environment}/argocd.json"
-  r2_signoz_credentials_key = "secrets/${local.environment}/signoz.json"
+  environment       = basename(dirname(local.env_hcl_path))
+  r2_secrets_key    = "secrets/${local.environment}/secrets.json"
+  r2_kubeconfig_key = "secrets/${local.environment}/kubeconfig.yaml"
 
   # Honor per-env overrides if set; otherwise fall back to the project defaults.
   r2_account_id  = lookup(local.env.locals, "r2_account_id", local.r2_account_id_default)
