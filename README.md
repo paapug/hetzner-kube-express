@@ -49,6 +49,10 @@ You need:
    cd infra/dev
    terragrunt run --all apply
    ```
+8. Fetch the kubeconfig from R2.
+   ```bash
+   ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
+   ```
 
 Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
 
