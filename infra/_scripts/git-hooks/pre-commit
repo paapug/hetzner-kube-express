@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Rewrite staged blobs for infra/<env>/env.hcl and infra/root.hcl through
+# anonymize-env-hcl.sh, so committed history never contains identifying values
+# (operator email, Cloudflare zone/domain, R2 account id, bucket name) while
+# the worktree keeps the real values for local terragrunt runs.
+#
+# Operates on the STAGED blob (git show :path), not the worktree. The worktree
+# is intentionally untouched -- the dev keeps editing with real values. Side
+# effect: `git status` will show these files as "modified" after every commit
+# (worktree real != HEAD anonymized). That's the point; see README.
+#
+# Installed via infra/_scripts/install-git-hooks.sh (sets core.hooksPath).
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+ANON="$REPO_ROOT/infra/_scripts/anonymize-env-hcl.sh"
+
+if [[ ! -x "$ANON" ]]; then
+  echo "pre-commit: $ANON not found or not executable; skipping" >&2
+  exit 0
+fi
+
+CANDIDATES="$(git diff --cached --name-only --diff-filter=ACMR | \
+  grep -E '^(infra/[^/]+/env\.hcl|infra/root\.hcl)$' || true)"
+
+if [[ -z "$CANDIDATES" ]]; then
+  exit 0
+fi
+
+# Avoid command-substitution roundtrips: $() strips trailing newlines, and HCL
+# files end in \n. Round-trip through temp files instead.
+TMPDIR_HOOK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_HOOK"' EXIT INT TERM HUP
+
+while IFS= read -r path; do
+  orig="$TMPDIR_HOOK/orig"
+  anon="$TMPDIR_HOOK/anon"
+  git show ":$path" > "$orig"
+  "$ANON" < "$orig" > "$anon"
+
+  if cmp -s "$orig" "$anon"; then
+    continue
+  fi
+
+  new_hash="$(git hash-object -w -- "$anon")"
+  mode="$(git ls-files --stage -- "$path" | awk '{print $1}')"
+  git update-index --cacheinfo "${mode},${new_hash},${path}"
+
+  echo "pre-commit: anonymized $path" >&2
+done <<< "$CANDIDATES"

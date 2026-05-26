@@ -195,6 +195,7 @@ cd infra/dev/signoz && terragrunt apply
 Do yourself a favor and:
 
 - use staging Let's Encrypt by setting `acme_use_staging = true` in [infra/dev/env.hcl](infra/dev/env.hcl). If you are running on macOS, run `infra/_scripts/trust-le-staging.sh <enable\|disable\|status>` to trust the staging roots.
+- install the git pre-commit hook by running `infra/_scripts/install-git-hooks.sh`. It automatically anonymizes `env.hcl` and `root.hcl` on commit.
 - test both apply and destroy operations.
 
 ## License
