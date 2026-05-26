@@ -181,3 +181,11 @@ cd infra/dev/signoz && terragrunt apply
 [ ] Authentik / Zitadel
 [ ] Documentation (lol)
 [ ] CI Tests
+
+...
+
+[ ] Modular cluster provider?
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).
