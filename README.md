@@ -175,16 +175,14 @@ cd infra/dev/signoz && terragrunt apply
 
 ## Roadmap
 
-[x] ArgoCD
-[x] CloudNativePG operator
-[x] SigNoz observability stack
-[ ] Authentik / Zitadel
-[ ] Documentation (lol)
-[ ] CI Tests
-
-...
-
-[ ] Modular cluster provider?
+- [x] ArgoCD
+- [x] CloudNativePG operator
+- [x] SigNoz observability stack
+- [ ] Authentik / Zitadel
+- [ ] Documentation (lol)
+- [ ] CI Tests
+- [ ] ...
+- [ ] Modular cluster provider?
 
 ## License
 
