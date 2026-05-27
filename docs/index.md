@@ -27,6 +27,10 @@
 
 The default dev environment runs on a handful of cx23 nodes for less than $20/month. Most managed Kubernetes services charge ~$70/month just to keep the control plane running - before a single workload.
 
+## Special thanks
+
+Huge thanks to the [kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner) maintainers. Their Terraform module does the heavy lifting - k3s on Hetzner, Cilium, Traefik, Klipper, cert-manager - and this project is largely a thin opinionated wrapper around it. If you find this useful, consider starring or sponsoring their repo.
+
 ## Where to next
 
 [:material-arrow-right: Get started](getting-started.md){ .md-button .md-button--primary }
