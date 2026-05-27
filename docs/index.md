@@ -1,61 +1,37 @@
-# Getting started
+# Welcome
 
-An opinionated, batteries-included, startup-ready Kubernetes platform on Hetzner Cloud driven by Terragrunt. This page walks a cluster owner through the one-time setup.
+**hetzner-kube-express** is a batteries-included, startup-ready Kubernetes platform on [Hetzner Cloud](https://www.hetzner.com/cloud), driven by [Terragrunt](https://terragrunt.gruntwork.io/).
 
-## Prerequisites
+## What's bundled
 
-You need:
+| Tech                                                                                 | Purpose                                                                                                    |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| [Traefik](https://traefik.io/)                                                       | Ingress controller.                                                                                        |
+| [cert-manager](https://cert-manager.io/)                                             | Automatic Let's Encrypt certificates via HTTP-01 through Traefik.                                          |
+| [Argo CD](https://argo-cd.readthedocs.io/)                                           | GitOps controller, exposed via a Traefik Ingress.                                                          |
+| [CloudNativePG](https://cloudnative-pg.io/)                                          | PostgreSQL operator, ready for declarative DB clusters.                                                    |
+| [SigNoz](https://signoz.io/)                                                         | Observability stack with auto-instrumented Kubernetes infrastructure metrics and auto-imported dashboards. |
 
-- a Hetzner API token with `Read` and `Write` on the project you want to use
-- a Cloudflare R2 bucket and an R2 API token with read+write
-- a domain on Cloudflare you control, plus a Cloudflare API token with DNS Read and DNS Write on that zone, and the zone's ID (do not mistake it for the account ID often visible in the URL!)
+## Built on top of
 
-## Initial setup (cluster owner, once)
+| Tech                                                                                                       | Purpose                                                                                            |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [k3s](https://k3s.io/) (via [kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner)) | Lightweight Kubernetes distribution provisioned on Hetzner `cx23` nodes in `fsn1`.                 |
+| [Cilium](https://cilium.io/) + [Hubble](https://docs.cilium.io/en/stable/observability/hubble/)            | CNI with kube-proxy replacement; Hubble adds in-cluster network observability.                     |
+| [Klipper](https://klipper.sh/)                                                                             | k3s ServiceLB; exposes Traefik on every node's public IP so no paid Hetzner LB is needed.          |
+| [Cloudflare R2](https://developers.cloudflare.com/r2/)                                                     | S3-compatible storage for Terraform state and per-env `secrets.json` (one bucket, both jobs).      |
+| [Cloudflare DNS](https://developers.cloudflare.com/dns/)                                                   | A records wired automatically to the cluster's worker node pool                                    |
+| [Terragrunt](https://terragrunt.gruntwork.io/)                                                             | Orchestrates the Terraform units as a dependency graph, with one apply across the whole stack.     |
 
-1. Install tools.
+## Cost shape
 
-    ```bash
-    brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
-    ```
+The default dev environment runs on a handful of cx23 nodes for less than $20/month. Most managed Kubernetes services charge ~$70/month just to keep the control plane running - before a single workload.
 
-2. Set R2 details in [`infra/root.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/root.hcl): `r2_account_id_default`, `r2_bucket_default`, `r2_aws_profile_default`. These apply to every environment unless an `env.hcl` overrides them.
+## Where to next
 
-3. Configure the AWS profile in `~/.aws/credentials` using the name from `r2_aws_profile_default`.
+[:material-arrow-right: Get started](getting-started.md){ .md-button .md-button--primary }
+[:material-account-multiple: Join as a teammate](joining.md){ .md-button }
 
-    ```ini
-    [r2-hetzner-kube-express]
-    aws_access_key_id     = <r2-access-key-id>
-    aws_secret_access_key = <r2-secret-access-key>
-    ```
-
-4. Set `cloudflare_zone_id` in [`infra/dev/env.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/dev/env.hcl) to the zone ID of the domain you control.
-
-5. Set `cert_manager.acme_email` in [`infra/dev/env.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/dev/env.hcl) to the email address to use for Let's Encrypt certificates.
-
-6. Bootstrap the environment (this will generate the cluster SSH key, ask for Hetzner + Cloudflare tokens, upload `secrets.json` to R2, and build the kube-hetzner MicroOS snapshot via packer if one isn't already present in the Hetzner project).
-
-    ```bash
-    ENV_DIR=infra/dev infra/_scripts/env-bootstrap.sh
-    ```
-
-7. Apply.
-
-    ```bash
-    cd infra/dev
-    terragrunt run --all apply
-    ```
-
-8. Fetch the kubeconfig from R2.
-
-    ```bash
-    ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
-    ```
-
-!!! info "Timing"
-    Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
-
-Share with teammates: the AWS profile keys (via password manager).
-
-## Next steps
-
-For joining as a teammate, adding environments, daily commands, trade-offs, and troubleshooting, see the project [README](https://github.com/paapug/hetzner-kube-express#readme).
+- New cluster? Head to [Getting started](getting-started.md) for the one-time setup as cluster owner.
+- Onboarding onto an existing cluster? See [Joining as a teammate](joining.md).
+- Looking for daily commands, trade-offs, and troubleshooting? See the project [README](https://github.com/paapug/hetzner-kube-express#readme).

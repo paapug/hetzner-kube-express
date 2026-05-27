@@ -1,6 +1,6 @@
 # Joining as a teammate
 
-Once a cluster owner has done the [Getting started](index.md), other teammates can come in with a much shorter onboarding.
+Once a cluster owner has done the [Getting started](getting-started.md) setup, other teammates can come in with a much shorter onboarding.
 
 ## What you need from the cluster owner
 
