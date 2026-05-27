@@ -52,7 +52,7 @@ You need:
     ```
 
 !!! info "Timing"
-Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
+    Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
 
 Share with teammates: the AWS profile keys (via password manager).
 

@@ -47,7 +47,7 @@ That's it. Everything else (Hetzner token, Cloudflare token, cluster SSH key, ku
     ```
 
 !!! tip "Multiple environments"
-Every fetch script takes `ENV_DIR=infra/<env>`. Swap `dev` for whichever environment the owner has bootstrapped.
+    Every fetch script takes `ENV_DIR=infra/<env>`. Swap `dev` for whichever environment the owner has bootstrapped.
 
 ## Next steps
 
