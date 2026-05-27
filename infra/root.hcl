@@ -36,8 +36,7 @@ remote_state {
   }
 
   config = {
-    bucket = local.r2_bucket
-    # path_relative_to_include() returns "<env>/<unit>" (e.g. "dev/cluster")
+    bucket  = local.r2_bucket
     key     = "state/${path_relative_to_include()}/terraform.tfstate"
     region  = "auto"
     profile = local.r2_aws_profile

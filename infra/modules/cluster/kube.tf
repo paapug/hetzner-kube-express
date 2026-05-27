@@ -1,6 +1,3 @@
-# Dev cluster in Falkenstein (fsn1), public nodes, Cilium + Hubble, Klipper LB.
-# Latest module release at time of authoring: v2.19.3 — check https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud
-
 module "kube-hetzner" {
   source  = "kube-hetzner/kube-hetzner/hcloud"
   version = "2.19.3"
@@ -17,15 +14,13 @@ module "kube-hetzner" {
   cluster_name   = var.cluster_name
   network_region = var.network_region
 
-  # --- Cilium: kube-proxy replacement + Hubble ---
-  cni_plugin            = "cilium"
-  disable_kube_proxy    = true
-  cilium_hubble_enabled = true
-
+  cni_plugin                            = "cilium"
+  disable_kube_proxy                    = true
+  cilium_hubble_enabled                 = true
   cilium_routing_mode                   = "native"
   cilium_loadbalancer_acceleration_mode = "best-effort"
 
-  # Klipper (k3s ServiceLB): ingress uses node public IPs — no extra Hetzner ingress LB cost
+  # Klipper exposes Traefik on every node — no Hetzner LB cost.
   enable_klipper_metal_lb = true
   load_balancer_location  = "fsn1"
 

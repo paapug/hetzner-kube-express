@@ -5,9 +5,6 @@ resource "kubernetes_service_account_v1" "signoz_bootstrap" {
   }
 }
 
-# Tightest possible Role: just enough to patch the api_key field into the
-# pre-created signoz-service-account-secret (no create — Terraform owns the
-# Secret object itself).
 resource "kubernetes_role_v1" "signoz_bootstrap" {
   metadata {
     name      = "signoz-bootstrap"

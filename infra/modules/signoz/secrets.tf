@@ -2,10 +2,8 @@ locals {
   admin_org_name = var.admin_org_name != "" ? var.admin_org_name : var.cluster_name
 }
 
-# SigNoz requires >=12 chars with upper, lower, digit AND symbol. We pin all
-# four classes (min_* constraints) and pick an override_special set that
-# survives shell/curl/jq round-trips inside the importer Job without escaping
-# (no quotes, backslash, backtick, $ or &).
+# SigNoz requires >=12 upper/lower/digit/symbol. override_special excludes chars
+# that would need escaping in the importer Job (quotes, backslash, $, &, `).
 resource "random_password" "signoz_admin" {
   length           = 24
   min_upper        = 2
@@ -30,9 +28,8 @@ resource "kubernetes_secret_v1" "signoz_initial_admin" {
   }
 }
 
-# Pre-created empty Secret. The dashboards-import Job patches `data.api_key`
-# in here on first run (after minting the Service Account key); subsequent
-# applies must not stomp on it, hence the lifecycle ignore.
+# Empty placeholder. The dashboards-import Job patches `data.api_key` after
+# minting the SA key; lifecycle.ignore_changes prevents apply from clobbering it.
 resource "kubernetes_secret_v1" "signoz_service_account" {
   metadata {
     name      = "signoz-service-account-secret"

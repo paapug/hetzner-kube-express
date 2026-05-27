@@ -1,11 +1,3 @@
-# SigNoz: Helm releases (signoz + k8s-infra) + namespace + Traefik Ingress
-# with cert-manager TLS + auto-imported dashboards.
-#
-# Three dependencies:
-#   - cluster:        kubeconfig for the kubernetes/helm providers
-#   - acme:           issuer_name to annotate the Ingress with
-#   - cloudflare_dns: signoz_host must resolve to a node IP before HTTP-01 fires
-
 include "root" {
   path   = find_in_parent_folders("root.hcl")
   expose = true
@@ -43,8 +35,8 @@ dependency "acme" {
   mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]
 }
 
-# DNS must exist before signoz applies: cert-manager's HTTP-01 solver needs
-# signoz_host to resolve to a node IP so Let's Encrypt can reach Traefik.
+# DNS must exist before apply: cert-manager HTTP-01 needs signoz_host
+# resolving to a node IP for Let's Encrypt to reach Traefik.
 dependency "cloudflare_dns" {
   config_path = "../cloudflare-dns"
 

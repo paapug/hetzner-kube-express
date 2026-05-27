@@ -23,7 +23,5 @@ data "aws_s3_object" "secrets" {
 }
 
 locals {
-  # NOTE: secrets land in tfstate. State itself is encrypted-at-rest in R2 and
-  # access is gated by the R2 token; rotate the token to revoke read access.
   secrets = jsondecode(data.aws_s3_object.secrets.body)
 }

@@ -1,11 +1,3 @@
-# Hetzner + k3s cluster via kube-hetzner.
-#
-# Sensitive inputs (hcloud_token, ssh keys) are read at plan/apply time from R2
-# by data.aws_s3_object.secrets in the module (see infra/modules/cluster/r2.tf).
-# Non-secret per-env config (firewall CIDRs, etc.) comes from env.hcl. R2
-# settings come from infra/root.hcl; we expose its locals here so we can pass
-# them as inputs to the module.
-
 include "root" {
   path   = find_in_parent_folders("root.hcl")
   expose = true
@@ -19,9 +11,8 @@ locals {
 terraform {
   source = "${get_repo_root()}/infra/modules/cluster"
 
-  # Refresh the env-local kubeconfig snapshot after every successful apply.
-  # AUTO_MERGE=0 keeps the hook from silently mutating ~/.kube/config under
-  # `run --all apply`; the script writes infra/<env>/.kube/config (mode 600).
+  # AUTO_MERGE=0 prevents the hook from mutating ~/.kube/config under
+  # `run --all apply`; it writes infra/<env>/.kube/config (mode 600) instead.
   after_hook "fetch_kubeconfig" {
     commands = ["apply"]
     execute = [

@@ -1,7 +1,6 @@
 locals {
-  # Flatten map(host -> [ip,...]) into a stable map keyed by "host/ip" so each
-  # (host, ip) pair becomes its own resource instance. Multiple IPs for the
-  # same host yields DNS round-robin.
+  # Flatten map(host -> [ip,...]) to one resource instance per (host, ip);
+  # multiple IPs for the same host gives DNS round-robin.
   record_pairs = merge([
     for host, ips in var.records : {
       for ip in ips : "${host}/${ip}" => {

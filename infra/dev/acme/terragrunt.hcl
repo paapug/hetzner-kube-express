@@ -1,8 +1,3 @@
-# Let's Encrypt ClusterIssuer (uses cert-manager already installed by kube-hetzner).
-#
-# Depends on the cluster unit for kubeconfig. Exposes outputs.issuer_name,
-# consumed by the argocd unit's Ingress annotation.
-
 include "root" {
   path = find_in_parent_folders("root.hcl")
 }

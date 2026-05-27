@@ -5,7 +5,7 @@ locals {
 
   bootstrap_script = file("${path.module}/scripts/dashboards_import.py")
 
-  # Re-run the Job whenever the script or any dashboard JSON changes.
+  # Hash forces a new Job (different name) when script or any dashboard changes.
   job_hash = substr(sha1(jsonencode({
     dashboards = local.dashboard_files_content
     script     = local.bootstrap_script
@@ -22,7 +22,7 @@ resource "kubernetes_config_map_v1" "signoz_dashboards" {
     }
   }
 
-  # Always create — even when empty — so the Job's volume mount is always valid.
+  # Always created (even empty) so the Job's volume mount stays valid.
   data = local.dashboard_files_content
 }
 
@@ -37,18 +37,9 @@ resource "kubernetes_config_map_v1" "signoz_bootstrap_script" {
   }
 }
 
-# Idempotent post-install Job:
-#   1) reuse the SA api_key from /sa/api_key if present;
-#   2) otherwise register the first admin (or fall back to login) using
-#      /admin/{email,password,org_name}, mint a long-lived Service Account +
-#      API key, then PATCH the api_key into signoz-service-account-secret via
-#      the in-cluster API (no kubectl);
-#   3) POST every /dashboards/*.json with header SigNoz-Api-Key.
-# Re-runs after a UI password change still succeed because the SA key is the
-# only credential needed once it's been minted.
-#
-# Implementation lives in scripts/dashboards_import.py (stdlib-only Python
-# 3.12, mounted via the signoz-bootstrap-script ConfigMap).
+# Idempotent post-install Job. Once the Service Account key has been minted
+# and patched into signoz-service-account-secret, re-runs only need that key —
+# survives admin password changes. Logic in scripts/dashboards_import.py.
 resource "kubernetes_job_v1" "dashboards_import" {
   metadata {
     name      = "signoz-dashboards-import-${local.job_hash}"

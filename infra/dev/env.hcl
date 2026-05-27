@@ -1,13 +1,10 @@
-# Per-environment locals (non-secret).
-#
-# Project defaults for R2 bucket / account id / AWS profile live in
-# infra/root.hcl as `r2_*_default`. Override any of them here only if this
-# env needs different values (e.g. prod with a separate bucket and IAM token).
+# Per-environment locals (non-secret). R2 defaults live in infra/root.hcl;
+# override per-env only when this env needs different values.
 
 locals {
   cluster_name = "dev"
 
-  # Used by cert-manager (Let's Encrypt) AND by SigNoz as the initial admin email.
+  # Used by cert-manager AND by SigNoz as the initial admin email.
   operator_email = "REPLACE_WITH_OPERATOR_EMAIL"
 
   cloudflare = {
@@ -71,7 +68,7 @@ locals {
     storage_class           = "hcloud-volumes"
   }
 
-  # Optional: override project defaults from root.hcl.
+  # Optional R2 overrides (see root.hcl):
   # r2_account_id  = "<another-cf-account-id>"
   # r2_bucket      = "<another-bucket>"
   # r2_aws_profile = "r2-hetzner-kube-express-prod"

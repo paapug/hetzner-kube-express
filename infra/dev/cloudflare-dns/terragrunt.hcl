@@ -1,11 +1,5 @@
-# Cloudflare DNS records for cluster ingress hostnames.
-#
-# Reads agent node public IPs from the cluster unit and creates one A record
-# per (host, ip) pair. Klipper exposes Traefik on every node, so DNS
-# round-robin across agent IPs is the simplest fan-out.
-#
-# Cloudflare API token comes from R2 secrets.json (cloudflare_api_token).
-# Zone ID is non-secret and lives in env.hcl.
+# One A record per (host, agent_ip) pair: Klipper exposes Traefik on every
+# node, so DNS round-robin across agent IPs fans ingress out cheaply.
 
 include "root" {
   path   = find_in_parent_folders("root.hcl")
