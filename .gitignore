@@ -33,3 +33,9 @@ override.tf.json
 # Python bytecode (signoz module ships dashboards_import.py)
 __pycache__/
 *.py[cod]
+
+# MkDocs build output
+/site/
+
+# Python virtualenvs (e.g. for local mkdocs preview)
+.venv/

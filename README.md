@@ -25,34 +25,34 @@ You need:
 
 - a Hetzner API token with `Read` and `Write` on the project you want to use
 - a Cloudflare R2 bucket and an R2 API token with read+write
-- a Cloudflare API token with `DNS Read` and `DNS Write` on the zone that owns `cloudflare.domain`, and that zone's ID (do not mistake it for the account ID often visible in the URL!)
+- a domain on Cloudflare you control, plus a Cloudflare API token with DNS Read and DNS Write on that zone, and the zone's ID (do not mistake it for the account ID often visible in the URL!)
 
 1. Install tools.
-   ```bash
-   brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
-   ```
+    ```bash
+    brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
+    ```
 2. Set R2 details in [infra/root.hcl](infra/root.hcl): `r2_account_id_default`, `r2_bucket_default`, `r2_aws_profile_default`. These apply to every environment unless an `env.hcl` overrides them.
 3. Configure the AWS profile in `~/.aws/credentials` using the name from `r2_aws_profile_default`.
-   ```ini
-   [r2-hetzner-kube-express]
-   aws_access_key_id     = <r2-access-key-id>
-   aws_secret_access_key = <r2-secret-access-key>
-   ```
-4. Set `cloudflare_zone_id` in [infra/dev/env.hcl](infra/dev/env.hcl) to the zone ID that owns `cloudflare.domain`.
+    ```ini
+    [r2-hetzner-kube-express]
+    aws_access_key_id     = <r2-access-key-id>
+    aws_secret_access_key = <r2-secret-access-key>
+    ```
+4. Set `cloudflare_zone_id` in [infra/dev/env.hcl](infra/dev/env.hcl) to the zone ID of the domain you control.
 5. Set `cert_manager.acme_email` in [infra/dev/env.hcl](infra/dev/env.hcl) to the email address to use for Let's Encrypt certificates.
-6. Bootstrap the environment (generates the cluster SSH key, asks for Hetzner + Cloudflare tokens, uploads `secrets.json` to R2, and builds the kube-hetzner MicroOS snapshot via packer if one isn't already present in the Hetzner project).
-   ```bash
-   ENV_DIR=infra/dev infra/_scripts/env-bootstrap.sh
-   ```
+6. Bootstrap the environment (this will generate the cluster SSH key, ask for Hetzner + Cloudflare tokens, upload `secrets.json` to R2, and build the kube-hetzner MicroOS snapshot via packer if one isn't already present in the Hetzner project).
+    ```bash
+    ENV_DIR=infra/dev infra/_scripts/env-bootstrap.sh
+    ```
 7. Apply.
-   ```bash
-   cd infra/dev
-   terragrunt run --all apply
-   ```
+    ```bash
+    cd infra/dev
+    terragrunt run --all apply
+    ```
 8. Fetch the kubeconfig from R2.
-   ```bash
-   ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
-   ```
+    ```bash
+    ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
+    ```
 
 Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
 
@@ -63,28 +63,28 @@ Share with teammates: the AWS profile keys (via password manager).
 ## 🤝 Joining as a teammate
 
 1. Install tools.
-   ```bash
-   brew install hashicorp/tap/terraform terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
-   ```
+    ```bash
+    brew install hashicorp/tap/terraform terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
+    ```
 2. Get the R2 keys from the cluster owner. Add them to `~/.aws/credentials` under the profile name from [infra/root.hcl](infra/root.hcl) (`r2_aws_profile_default`):
-   ```ini
-   [r2-hetzner-kube-express]
-   aws_access_key_id     = <from-owner>
-   aws_secret_access_key = <from-owner>
-   ```
+    ```ini
+    [r2-hetzner-kube-express]
+    aws_access_key_id     = <from-owner>
+    aws_secret_access_key = <from-owner>
+    ```
 3. (Optional) Restore the cluster SSH key locally if you need `ssh`/`scp` to nodes.
-   ```bash
-   ENV_DIR=infra/dev infra/_scripts/fetch-ssh-key.sh
-   ```
+    ```bash
+    ENV_DIR=infra/dev infra/_scripts/fetch-ssh-key.sh
+    ```
 4. (Optional) Fetch the kubeconfig from R2.
-   ```bash
-   ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
-   ```
+    ```bash
+    ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
+    ```
 5. You're done. Run terragrunt as needed.
-   ```bash
-   cd infra/dev
-   terragrunt run --all plan
-   ```
+    ```bash
+    cd infra/dev
+    terragrunt run --all plan
+    ```
 
 ## 🆕 Adding a new environment
 
