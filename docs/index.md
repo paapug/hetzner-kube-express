@@ -34,10 +34,9 @@ Huge thanks to the [kube-hetzner](https://github.com/kube-hetzner/terraform-hclo
 ## Where to next
 
 [:material-arrow-right: Get started](getting-started.md){ .md-button .md-button--primary }
+[:material-book-open-page-variant: User guide](signoz.md){ .md-button }
 [:material-account-multiple: Join as a teammate](joining.md){ .md-button }
-[:material-source-pull: Contribute](contributing.md){ .md-button }
 
 - New cluster? Head to [Getting started](getting-started.md) for the one-time setup as cluster owner.
 - Onboarding onto an existing cluster? See [Joining as a teammate](joining.md).
 - Sending a PR? See [Contributing](contributing.md) for the repo layout, conventions, and Cursor skills setup.
-- Looking for daily commands, trade-offs, and troubleshooting? See the project [README](https://github.com/paapug/hetzner-kube-express#readme).

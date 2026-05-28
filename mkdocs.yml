@@ -13,6 +13,7 @@ theme:
     - content.code.copy
     - content.action.edit
     - navigation.instant
+    - navigation.tabs
     - navigation.tracking
     - navigation.top
     - toc.follow
@@ -49,7 +50,12 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - Welcome: index.md
-  - Getting started: getting-started.md
-  - Joining as a teammate: joining.md
-  - Contributing: contributing.md
+  - Start here: 
+    - Welcome: index.md
+    - Getting started: getting-started.md
+    - Joining as a teammate: joining.md
+    - Contributing: contributing.md
+  - User guide:
+      - SigNoz: signoz.md
+
+

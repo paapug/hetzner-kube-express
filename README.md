@@ -2,6 +2,8 @@
 
 An opinionated, batteries-included, startup-ready Kubernetes platform on Hetzner Cloud driven by Terragrunt.
 
+Documentation: [click here](https://paapug.github.io/hetzner-kube-express/)
+
 ## 📦 Features
 
 - Out-of-the-box GitOps with [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
