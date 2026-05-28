@@ -44,7 +44,8 @@ Terraform reads this object during apply:
 - The `cluster` module uses the Hetzner token and SSH key material.
 - The `cloudflare-dns` module uses the Cloudflare API token.
 
-Anyone with read access to this R2 object can retrieve infrastructure credentials and the cluster SSH key, so treat the R2 access keys like production secrets.
+!!! danger "Treat R2 access keys as production secrets"
+    Anyone with read access to this R2 object can retrieve the Hetzner and Cloudflare API tokens and the cluster SSH private key. Rotating all of those is time-consuming, so share the R2 keys only via a password manager and revoke them aggressively when someone leaves.
 
 ## ENV_DIR selects the environment
 
@@ -76,7 +77,10 @@ Bootstrap does several things:
 4. Builds `secrets.json` and uploads it to `secrets/<env>/secrets.json` in R2.
 5. Builds the kube-hetzner MicroOS snapshot with Packer if the Hetzner project does not already have one.
 
-Bootstrap refuses to overwrite an existing `secrets.json`. If you set `FORCE=1`, it overwrites the object and rotates the cluster SSH key material, which can lock out anyone relying on the old key.
+Bootstrap refuses to overwrite an existing `secrets.json`.
+
+!!! danger "`FORCE=1` rotates the cluster SSH key"
+    Setting `FORCE=1` overwrites the R2 object and generates a new cluster SSH key pair. Anyone (or any automation) still using the previous private key will be locked out of node-level SSH until they re-fetch.
 
 ## Edit secrets.json
 

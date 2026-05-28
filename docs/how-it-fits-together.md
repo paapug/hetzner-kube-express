@@ -113,9 +113,12 @@ The DNS unit also looks at service enablement flags when building records. If yo
 
 ## Gotchas to know early
 
-Cloudflare records are intentionally unproxied. cert-manager uses HTTP-01 validation, and those challenges need to reach Traefik directly. Do not enable Cloudflare proxy mode for these records unless you also change the certificate flow to something compatible, such as DNS-01.
+!!! danger "Cloudflare records are intentionally unproxied"
+    cert-manager uses HTTP-01 validation, and those challenges need to reach Traefik directly. Do not enable Cloudflare proxy mode for these records unless you also change the certificate flow to something compatible, such as DNS-01.
 
-If you change worker node pools and run a full environment apply, Terragrunt updates the cluster first and then reconciles DNS. If you apply only the `cluster` unit, also apply `cloudflare-dns` afterwards so Cloudflare stops pointing at stale worker IPs.
+!!! warning "Partial applies leave DNS stale"
+    A full `terragrunt run --all apply` updates the cluster first and then reconciles DNS. If you apply only the `cluster` unit after changing node pools, also apply `cloudflare-dns` afterwards so Cloudflare stops pointing at stale worker IPs.
 
-Terraform `plan` on a fresh clone works because dependency blocks include mock outputs for commands such as `plan`, `validate`, and `init`. Real applies still use real outputs from upstream units.
+!!! note "`plan` works on a fresh clone"
+    `dependency` blocks include `mock_outputs` for `plan`, `validate`, and `init`, so a fresh clone can plan without any upstream unit having been applied yet. Real applies still use real outputs from upstream units.
 

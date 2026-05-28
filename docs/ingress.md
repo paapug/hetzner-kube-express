@@ -74,20 +74,20 @@ terragrunt run --all apply
 
 That means scaling workers, adding an ordinary worker pool, or removing one is normally enough. The DNS records are reconciled as part of the same run.
 
-If you apply only the cluster unit after changing node pools, also apply `cloudflare-dns` afterwards:
+!!! warning "Partial applies leave DNS stale"
+    If you apply only the `cluster` unit after changing node pools, also apply `cloudflare-dns` afterwards. Otherwise Cloudflare keeps pointing at the old worker IPs until the DNS unit is reconciled.
 
-```bash
-cd infra/<env>/cluster
-terragrunt apply
+    ```bash
+    cd infra/<env>/cluster
+    terragrunt apply
 
-cd ../cloudflare-dns
-terragrunt apply
-```
-
-Without the second apply, Cloudflare may still point at the old set of worker IPs until the DNS unit is reconciled.
+    cd ../cloudflare-dns
+    terragrunt apply
+    ```
 
 ## Cloudflare proxy mode
 
 Ingress records are managed with Cloudflare proxying disabled. This is intentional: cert-manager currently uses HTTP-01, and those challenges need to reach Traefik directly.
 
-Do not enable the Cloudflare proxy for these records unless you also change the certificate flow to something compatible, such as DNS-01.
+!!! danger "Do not enable the Cloudflare proxy"
+    Flipping `proxied = true` while cert-manager still uses HTTP-01 breaks certificate issuance and renewal. Only enable proxy mode if you also switch the ACME solver to something compatible, such as DNS-01.
