@@ -22,6 +22,15 @@ Up to 16 volumes can be attached to a single cloud server. This limit matters wh
 
 Hetzner does not provide performance guarantees for this storage. For serious database, queue, or observability workloads, benchmark the actual workload and monitor disk latency, throughput, and I/O pressure.
 
+As a rough order of magnitude, a single volume on a `cx23` agent in `fsn1` benchmarked with `fio` (random 50/50 read/write, `iodepth=64`, `numjobs=2`, `--direct=1`) lands around:
+
+| Block size | Total throughput | Total IOPS |
+|---|---|---|
+| 4k   | ~60 MB/s    | ~15,000 |
+| 64k  | ~640 MB/s   | ~9,700  |
+| 512k | ~620 MB/s   | ~1,200  |
+| 1m   | ~620 MB/s   | ~590    |
+
 Persistent volumes are not backups. If a chart or namespace is destroyed, the related Kubernetes objects and volumes may be deleted depending on reclaim policy and chart behavior. Back up important data separately.
 
 Storage is tied to node scheduling. If a pod using a `ReadWriteOnce` volume cannot be scheduled on a node that can attach the volume, it may remain pending until Kubernetes can place it correctly.
