@@ -1,6 +1,6 @@
 # Welcome
 
-**hetzner-kube-express** is the shortcut from zero to a solid Kubernetes platform on [Hetzner Cloud](https://www.hetzner.com/cloud): one `terragrunt run --all apply` gets you a batteries-included cluster with ingress, observability, storage, cert-manager, GitOps, Postgres operator, container registry, and secrets kept out of git.
+**hetzner-kube-express** is the shortcut from zero to a solid Kubernetes platform on [Hetzner Cloud](https://www.hetzner.com/cloud): one `terragrunt run --all apply` gets you a batteries-included cluster with ingress, observability, storage, cert-manager, gitops, postgres operator, and container registry.
 
 ## What's bundled
 
