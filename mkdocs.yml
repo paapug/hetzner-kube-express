@@ -62,7 +62,9 @@ nav:
   - User guide:
       - How it fits together: how-it-fits-together.md
       - Secrets and helper scripts: secrets-and-scripts.md
+      - Adding environments: adding-environments.md
       - Ingress: ingress.md
+      - Persistent Volumes: persistent-volumes.md
       - SigNoz: signoz.md
 
 

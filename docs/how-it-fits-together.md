@@ -19,7 +19,7 @@ There are two important layers in `infra/`.
 
 For example, `infra/modules/argocd` knows how to install Argo CD with Helm and expose it through Traefik. `infra/dev/argocd/terragrunt.hcl` says whether Argo CD is enabled in `dev`, which chart version to use, which hostname to expose, and which upstream outputs it needs.
 
-Adding another environment should not require copying module code. The usual pattern is to copy `infra/dev` to `infra/<new-env>`, edit `env.hcl`, bootstrap that environment, and run Terragrunt from the new environment folder.
+Adding another environment should not require copying module code. The usual pattern is to copy `infra/dev` to `infra/<new-env>`, edit `env.hcl`, bootstrap that environment, and run Terragrunt from the new environment folder. See [Adding environments](adding-environments.md) for the step-by-step flow.
 
 ## Where configuration lives
 

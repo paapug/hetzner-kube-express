@@ -17,7 +17,7 @@ signoz = {
 If SigNoz is already installed, destroy the `signoz` unit before flipping the flag. Once `enabled = false`, Terragrunt excludes that unit from future runs.
 
 !!! warning
-    Destroying the `signoz` unit deletes the SigNoz namespace and its persistent volumes. Any telemetry stored in SigNoz is lost unless you have backed it up elsewhere.
+    Destroying the `signoz` unit deletes the SigNoz namespace and its [persistent volumes](persistent-volumes.md). Any telemetry stored in SigNoz is lost unless you have backed it up elsewhere.
 
 ## Access the UI
 

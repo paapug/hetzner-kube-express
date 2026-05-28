@@ -60,4 +60,4 @@ Share with teammates: the AWS profile keys (via password manager).
 
 ## Next steps
 
-To invite someone onto the cluster, send them to [Joining as a teammate](joining.md). For the full Terragrunt/module dependency map, read [How it fits together](how-it-fits-together.md).
+To invite someone onto the cluster, send them to [Joining as a teammate](joining.md). To create another environment, see [Adding environments](adding-environments.md). For the full Terragrunt/module dependency map, read [How it fits together](how-it-fits-together.md).
