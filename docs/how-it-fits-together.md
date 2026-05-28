@@ -57,6 +57,7 @@ flowchart TD
   cnpg[cnpg]
   argocd[argocd]
   signoz[signoz]
+  harbor[harbor]
 
   cluster --> acme
   cluster --> cloudflareDns
@@ -65,13 +66,15 @@ flowchart TD
   cloudflareDns --> argocd
   acme --> signoz
   cloudflareDns --> signoz
+  acme --> harbor
+  cloudflareDns --> harbor
 ```
 
 Read it in tiers:
 
 1. `cluster` creates the k3s cluster on Hetzner and uploads a kubeconfig to R2.
 2. `acme`, `cloudflare-dns`, and `cnpg` can run after the cluster exists.
-3. `argocd` and `signoz` run after the ACME issuer and DNS records are in place.
+3. `argocd`, `signoz`, and `harbor` run after the ACME issuer and DNS records are in place.
 
 You can ask Terragrunt for the live graph from an environment folder:
 
@@ -94,15 +97,17 @@ terragrunt dag graph
 
 `signoz` installs SigNoz, the Kubernetes infrastructure integration, the dashboard importer, and a Traefik `Ingress`. Like Argo CD, it waits for the cluster, ACME issuer, and DNS records.
 
+`harbor` installs Harbor (container registry + Trivy scanner) via Helm and exposes the UI and registry through a Traefik `Ingress`. Like Argo CD and SigNoz, it waits for the cluster, ACME issuer, and DNS records.
+
 ## Why some dependencies are only for ordering
 
-Not every dependency passes a value into Terraform. `argocd` and `signoz` depend on `cloudflare-dns` mostly for timing: cert-manager's HTTP-01 challenge needs the public hostname to resolve to a worker node before Let's Encrypt can reach Traefik.
+Not every dependency passes a value into Terraform. `argocd`, `signoz`, and `harbor` depend on `cloudflare-dns` mostly for timing: cert-manager's HTTP-01 challenge needs the public hostname to resolve to a worker node before Let's Encrypt can reach Traefik.
 
 That is why the DNS unit sits before the UI units even though those modules do not need a DNS output as an input.
 
 ## Optional units
 
-Some units can be excluded from a run with an `enabled` flag in `infra/<env>/env.hcl`. Argo CD and CloudNativePG default to enabled. SigNoz is wired defensively so a missing flag defaults to disabled in its unit, while the provided dev environment enables it explicitly.
+Some units can be excluded from a run with an `enabled` flag in `infra/<env>/env.hcl`. Argo CD and CloudNativePG default to enabled. SigNoz and Harbor are wired defensively so a missing flag defaults to disabled in their unit, while the provided dev environment enables them explicitly.
 
 The DNS unit also looks at service enablement flags when building records. If you do not want DNS for an optional bundled service in a new environment, disable that service before the first apply.
 

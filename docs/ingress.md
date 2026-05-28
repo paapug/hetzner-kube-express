@@ -27,7 +27,7 @@ The `Ingress` contains the host and routing rules for Traefik. It also reference
 
 ## What is configured for you
 
-Bundled services such as Argo CD and SigNoz create Traefik `Ingress` objects when they are enabled. Their hostnames, enablement flags, and related environment settings live in `infra/<env>/env.hcl`.
+Bundled services such as Argo CD, SigNoz, and Harbor create Traefik `Ingress` objects when they are enabled. Their hostnames, enablement flags, and related environment settings live in `infra/<env>/env.hcl`.
 
 The `cloudflare-dns` unit creates Cloudflare `A` records for enabled bundled services. It creates one record per hostname and worker node IP, which gives simple DNS round-robin across the workers.
 

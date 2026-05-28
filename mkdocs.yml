@@ -66,5 +66,6 @@ nav:
       - Ingress: ingress.md
       - Persistent Volumes: persistent-volumes.md
       - SigNoz: signoz.md
+      - Harbor: harbor.md
 
 

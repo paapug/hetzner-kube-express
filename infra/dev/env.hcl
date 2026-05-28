@@ -75,11 +75,11 @@ locals {
     host          = "harbor.${local.cloudflare.domain}"
     storage_class = "hcloud-volumes"
     pvc_sizes = {
-      registry   = "50Gi" # image/chart blobs; the only one that really grows
-      jobservice = "5Gi"  # job logs
-      database   = "5Gi"  # bundled Postgres
-      redis      = "2Gi"  # bundled Redis (AOF/RDB)
-      trivy      = "10Gi" # vuln DB cache
+      registry   = "50Gi"
+      jobservice = "5Gi"
+      database   = "5Gi"
+      redis      = "2Gi"
+      trivy      = "10Gi"
     }
   }
 

@@ -1,6 +1,6 @@
 # Welcome
 
-**hetzner-kube-express** is the shortcut from zero to a solid Kubernetes platform on [Hetzner Cloud](https://www.hetzner.com/cloud): one `terragrunt run --all apply` gets you a batteries-included cluster with ingress, observability, storeage, cert-manager, GitOps, Postgres operator, and secrets kept out of git.
+**hetzner-kube-express** is the shortcut from zero to a solid Kubernetes platform on [Hetzner Cloud](https://www.hetzner.com/cloud): one `terragrunt run --all apply` gets you a batteries-included cluster with ingress, observability, storage, cert-manager, GitOps, Postgres operator, container registry, and secrets kept out of git.
 
 ## What's bundled
 
@@ -10,6 +10,7 @@
 | [cert-manager](https://cert-manager.io/)                                             | Automatic Let's Encrypt certificates via HTTP-01 through Traefik.                                          |
 | [Argo CD](https://argo-cd.readthedocs.io/)                                           | GitOps controller, exposed via a Traefik Ingress.                                                          |
 | [CloudNativePG](https://cloudnative-pg.io/)                                          | PostgreSQL operator, ready for declarative DB clusters.                                                    |
+| [Harbor](https://goharbor.io/)                                                       | Container registry with bundled Trivy image scanning, exposed via a Traefik Ingress.                       |
 | [SigNoz](https://signoz.io/)                                                         | Observability stack with auto-instrumented Kubernetes infrastructure metrics and auto-imported dashboards. |
 
 ## Built on top of

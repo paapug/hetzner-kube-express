@@ -1,6 +1,6 @@
 # Contributing
 
-Design priority: a single `terragrunt run --all apply` should take you from zero to a batteries-included cluster with good practices: ingress, TLS, GitOps, DNS, observability, and secrets kept out of git.
+Design priority: a single `terragrunt run --all apply` should take you from zero to a batteries-included cluster with good practices: ingress, TLS, GitOps, DNS, observability, container registry, and secrets kept out of git.
 
 ## Repo layout
 
@@ -13,6 +13,7 @@ infra/
 │   ├── cloudflare-dns/            # Cloudflare A records (e.g. argocd_host -> node IPs)
 │   ├── argocd/                    # Argo CD Helm release + Traefik Ingress
 │   ├── cnpg/                      # CloudNativePG operator
+│   ├── harbor/                    # Harbor (container registry) Helm release + Traefik Ingress
 │   └── signoz/                    # SigNoz observability stack
 ├── _scripts/                      # R2 ops helpers (bootstrap, secrets-edit, fetch-kubeconfig, ...)
 └── dev/                           # An environment (copy to add staging/prod)
@@ -28,7 +29,7 @@ The mental model is: `infra/modules/<name>/` is the **how** (reusable, env-agnos
 ## Apply DAG
 
 ```
-cluster → acme, cloudflare-dns, cnpg → argocd, signoz
+cluster → acme, cloudflare-dns, cnpg → argocd, signoz, harbor
 ```
 
 Things to the right of an arrow run in parallel once everything to their left has applied. `cluster` is always first (it produces the kubeconfig). To see the live graph for an environment:
