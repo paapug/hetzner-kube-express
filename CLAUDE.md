@@ -31,7 +31,7 @@ infra/
     └── <unit>/terragrunt.hcl   # Wires module + dependencies + inputs
 ```
 
-Apply DAG: `cluster` → (`acme`, `cloudflare-dns`, `cnpg` in parallel) → (`argocd`, `signoz` in parallel).
+Apply DAG: `cluster` → (`acme`, `cloudflare-dns`, `cnpg` in parallel) → (`argocd`, `signoz`, `harbor` in parallel).
 
 ## Conventions to follow
 

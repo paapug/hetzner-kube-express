@@ -69,6 +69,20 @@ locals {
     storage_class           = "hcloud-volumes"
   }
 
+  harbor = {
+    enabled       = true
+    chart_version = "1.19.1" # https://github.com/goharbor/harbor-helm/releases
+    host          = "harbor.${local.cloudflare.domain}"
+    storage_class = "hcloud-volumes"
+    pvc_sizes = {
+      registry   = "50Gi" # image/chart blobs; the only one that really grows
+      jobservice = "5Gi"  # job logs
+      database   = "5Gi"  # bundled Postgres
+      redis      = "2Gi"  # bundled Redis (AOF/RDB)
+      trivy      = "10Gi" # vuln DB cache
+    }
+  }
+
   # Optional R2 overrides (see root.hcl):
   # r2_account_id  = "<another-cf-account-id>"
   # r2_bucket      = "<another-bucket>"
