@@ -27,8 +27,8 @@ inputs = {
   cloudflare_zone_id = local.env.locals.cloudflare.zone_id
 
   records = merge(
-    { (local.env.locals.argocd.host) = dependency.cluster.outputs.agents_public_ipv4 },
-    try({ (local.env.locals.signoz.host) = dependency.cluster.outputs.agents_public_ipv4 }, {}),
+    try(local.env.locals.argocd.enabled, true) ? try({ (local.env.locals.argocd.host) = dependency.cluster.outputs.agents_public_ipv4 }, {}) : {},
+    try(local.env.locals.signoz.enabled, true) ? try({ (local.env.locals.signoz.host) = dependency.cluster.outputs.agents_public_ipv4 }, {}) : {},
   )
 
   r2_account_id  = include.root.locals.r2_account_id
