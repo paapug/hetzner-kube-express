@@ -34,9 +34,10 @@ Huge thanks to the [kube-hetzner](https://github.com/kube-hetzner/terraform-hclo
 ## Where to next
 
 [:material-arrow-right: Get started](getting-started.md){ .md-button .md-button--primary }
-[:material-book-open-page-variant: User guide](signoz.md){ .md-button }
+[:material-book-open-page-variant: User guide](how-it-fits-together.md){ .md-button }
 [:material-account-multiple: Join as a teammate](joining.md){ .md-button }
 
+- Want the high-level map first? Read [How it fits together](how-it-fits-together.md) for the Terragrunt graph, module wiring, and R2 mental model.
 - New cluster? Head to [Getting started](getting-started.md) for the one-time setup as cluster owner.
 - Onboarding onto an existing cluster? See [Joining as a teammate](joining.md).
 - Sending a PR? See [Contributing](contributing.md) for the repo layout, conventions, and Cursor skills setup.

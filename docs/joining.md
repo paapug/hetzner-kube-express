@@ -51,4 +51,4 @@ That's it. Everything else (Hetzner token, Cloudflare token, cluster SSH key, ku
 
 ## Next steps
 
-- See the project [README](https://github.com/paapug/hetzner-kube-express#readme) for daily commands, trade-offs, and troubleshooting.
+- Read [How it fits together](how-it-fits-together.md) for the Terragrunt graph and module wiring.

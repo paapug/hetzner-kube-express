@@ -60,6 +60,8 @@ nav:
     - Joining as a teammate: joining.md
     - Contributing: contributing.md
   - User guide:
+      - How it fits together: how-it-fits-together.md
+      - Secrets and helper scripts: secrets-and-scripts.md
       - Ingress: ingress.md
       - SigNoz: signoz.md
 

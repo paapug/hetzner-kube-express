@@ -51,6 +51,8 @@ You need:
     ENV_DIR=infra/dev infra/_scripts/fetch-kubeconfig.sh
     ```
 
+    For the mental model behind bootstrap, R2, and the fetch scripts, see [Secrets and helper scripts](secrets-and-scripts.md).
+
 !!! info "Timing"
     Bootstrap takes ~5–10 min on first run (packer builds the MicroOS snapshot). Apply itself is then ~5–10 min.
 
@@ -58,4 +60,4 @@ Share with teammates: the AWS profile keys (via password manager).
 
 ## Next steps
 
-For joining as a teammate, adding environments, daily commands, trade-offs, and troubleshooting, see the project [README](https://github.com/paapug/hetzner-kube-express#readme).
+To invite someone onto the cluster, send them to [Joining as a teammate](joining.md). For the full Terragrunt/module dependency map, read [How it fits together](how-it-fits-together.md).
