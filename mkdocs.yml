@@ -45,7 +45,11 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -56,6 +60,7 @@ nav:
     - Joining as a teammate: joining.md
     - Contributing: contributing.md
   - User guide:
+      - Ingress: ingress.md
       - SigNoz: signoz.md
 
 

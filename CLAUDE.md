@@ -76,6 +76,16 @@ Terragrunt side (`infra/<env>/<name>/terragrunt.hcl`):
 
 ## Code style
 
+### Documentation
+User-facing docs are for a technically curious newcomer: someone who may know the basics, but should not need deep Kubernetes, Terragrunt, Hetzner, cert-manager, or Cloudflare context to understand the page.
+
+- Keep the tone practical, calm, and friendly. Explain the mental model first, then the command or config path.
+- Be newbie-friendly without becoming tutorial-heavy. Define project-specific wiring and gotchas, but skip generic background readers can find elsewhere.
+- Don't be overly specific. Avoid copying concrete values from `infra/<env>/env.hcl`; say that hostnames, enablement flags, node pools, and similar settings are configured there.
+- Prefer broad, durable explanations over environment-specific examples. Use `infra/<env>/...` paths and placeholder commands when possible.
+- Call out operational caveats that prevent surprises, especially when a partial apply needs a follow-up unit apply.
+- For diagrams, keep labels short and show the main data/control flow. Add a short paragraph after the graph for the details that do not belong in the graph.
+
 ### Comments: keep them short
 Existing comments in this repo are intentionally terse. Match that.
 

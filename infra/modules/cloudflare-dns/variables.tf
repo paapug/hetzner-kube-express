@@ -3,9 +3,36 @@ variable "cloudflare_zone_id" {
   description = "Cloudflare zone ID that owns the hostnames being managed."
 }
 
+variable "cloudflare_domain" {
+  type        = string
+  description = "Cloudflare zone domain used to expand additional ingress subdomains into hostnames."
+}
+
 variable "records" {
   type        = map(list(string))
   description = "Map of FQDN -> list of IPv4 addresses. One A record is created per (fqdn, ip) pair, enabling DNS round-robin across multiple targets."
+}
+
+variable "additional_ingress_subdomains" {
+  type        = list(string)
+  description = "Additional ingress subdomains under cloudflare_domain that should point at all agent public IPv4 addresses."
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for subdomain in var.additional_ingress_subdomains :
+      trimspace(subdomain) == subdomain &&
+      can(regex("^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$", subdomain)) &&
+      lower(subdomain) != lower(var.cloudflare_domain) &&
+      !endswith(lower(subdomain), ".${lower(var.cloudflare_domain)}")
+    ])
+    error_message = "Each additional ingress subdomain must be relative to cloudflare_domain, for example \"app\" or \"api.v1\", not a URL or FQDN."
+  }
+}
+
+variable "agents_public_ipv4" {
+  type        = list(string)
+  description = "Agent node public IPv4 addresses used as targets for additional ingress domains."
 }
 
 variable "ttl" {

@@ -8,8 +8,9 @@ locals {
   operator_email = "REPLACE_WITH_OPERATOR_EMAIL"
 
   cloudflare = {
-    zone_id = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
-    domain  = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
+    zone_id                       = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
+    domain                        = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
+    additional_ingress_subdomains = []
   }
 
   hetzner = {

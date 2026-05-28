@@ -24,7 +24,10 @@ dependency "cluster" {
 }
 
 inputs = {
-  cloudflare_zone_id = local.env.locals.cloudflare.zone_id
+  cloudflare_zone_id            = local.env.locals.cloudflare.zone_id
+  cloudflare_domain             = local.env.locals.cloudflare.domain
+  additional_ingress_subdomains = try(local.env.locals.cloudflare.additional_ingress_subdomains, [])
+  agents_public_ipv4            = dependency.cluster.outputs.agents_public_ipv4
 
   records = merge(
     try(local.env.locals.argocd.enabled, true) ? try({ (local.env.locals.argocd.host) = dependency.cluster.outputs.agents_public_ipv4 }, {}) : {},
