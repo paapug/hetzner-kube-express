@@ -67,6 +67,11 @@ locals {
     host                    = "signoz.${local.cloudflare.domain}"
     deployment_environment  = "dev"
     storage_class           = "hcloud-volumes"
+    pvc_sizes = {
+      clickhouse = "20Gi"
+      zookeeper  = "8Gi"
+      signoz     = "1Gi"
+    }
   }
 
   harbor = {

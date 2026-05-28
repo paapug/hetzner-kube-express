@@ -54,6 +54,7 @@ inputs = {
   k8s_infra_chart_version = local.env.locals.signoz.k8s_infra_chart_version
   signoz_host             = local.env.locals.signoz.host
   storage_class           = local.env.locals.signoz.storage_class
+  pvc_sizes               = local.env.locals.signoz.pvc_sizes
   deployment_environment  = local.env.locals.signoz.deployment_environment
 
   cluster_name = local.env.locals.cluster_name

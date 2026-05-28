@@ -46,6 +46,20 @@ variable "storage_class" {
   default     = "hcloud-volumes"
 }
 
+variable "pvc_sizes" {
+  type = object({
+    clickhouse = string
+    zookeeper  = string
+    signoz     = string
+  })
+  description = "Sizes for the three SigNoz PVCs. ClickHouse holds the telemetry data and is the only one that really grows."
+  default = {
+    clickhouse = "20Gi"
+    zookeeper  = "8Gi"
+    signoz     = "1Gi"
+  }
+}
+
 variable "dashboards_dir" {
   type        = string
   description = "Filesystem path holding dashboard JSON files to auto-import. Defaults to the module's bundled dashboards/ folder."

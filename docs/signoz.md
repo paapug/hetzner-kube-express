@@ -4,7 +4,7 @@ SigNoz is the bundled observability stack. In the provided environment it is ena
 
 ## Configure or disable it
 
-SigNoz is configured from `infra/<env>/env.hcl`. That is where you control whether it is enabled, which hostname it uses, chart versions, etc.
+SigNoz is configured from `infra/<env>/env.hcl`. That is where you control whether it is enabled, which hostname it uses, chart versions, and the size of its persistent volumes.
 
 To skip SigNoz in a new environment, set the SigNoz `enabled` flag to `false` before the first apply:
 
@@ -18,6 +18,18 @@ If SigNoz is already installed, destroy the `signoz` unit before flipping the fl
 
 !!! warning
     Destroying the `signoz` unit deletes the SigNoz namespace and its [persistent volumes](persistent-volumes.md). Any telemetry stored in SigNoz is lost unless you have backed it up elsewhere.
+
+## Resize the persistent volumes
+
+SigNoz keeps state on three PersistentVolumeClaims. Their sizes are exposed in `infra/<env>/env.hcl` so each environment can tune capacity without forking the module.
+
+| PVC | Purpose |
+| --- | --- |
+| `clickhouse` | Telemetry data (traces, metrics, logs). The only PVC that grows with usage. |
+| `zookeeper` | ClickHouse coordination state. |
+| `signoz` | Internal SQLite database for dashboards, users, and alerts. |
+
+Hetzner block storage is grow-only and has a 10 GiB minimum per volume, so values below 10 GiB are silently rounded up at provision time. Start small if in doubt; see [Persistent Volumes](persistent-volumes.md) for the storage class details and operational caveats.
 
 ## Access the UI
 

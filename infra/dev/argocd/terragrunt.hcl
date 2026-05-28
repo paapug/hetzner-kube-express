@@ -5,7 +5,7 @@ include "root" {
 
 locals {
   env     = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-  enabled = try(local.env.locals.argocd.enabled, true)
+  enabled = try(local.env.locals.argocd.enabled, false)
 }
 
 exclude {

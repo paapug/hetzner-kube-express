@@ -53,7 +53,7 @@ If you add a unit, update the DAG description above and check `terragrunt dag gr
 
 - **`include "root"` everywhere** with `expose = true` so `include.root.locals.*` is available.
 - **Always provide `mock_outputs`** plus `mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]` on every `dependency`. Without this, a `plan` on a fresh clone fails.
-- **Drive on/off switches from `env.hcl`.** The pattern is `try(local.env.locals.<name>.enabled, true)` + an `exclude { if = !local.enabled, actions = ["all"] }` block.
+- **Drive on/off switches from `env.hcl`.** The pattern is `try(local.env.locals.<name>.enabled, false)` + an `exclude { if = !local.enabled, actions = ["all"] }` block.
 - **Don't hardcode account IDs, buckets, hostnames, or zone IDs.** They come from `include.root.locals.*` and `local.env.locals.*`.
 
 ### Secrets
@@ -106,7 +106,7 @@ A unit = `infra/modules/<name>/` (Terraform) + `infra/<env>/<name>/terragrunt.hc
 **Terragrunt side (`infra/<env>/<name>/terragrunt.hcl`):**
 
 - `include "root" { ... expose = true }` + `local.env = read_terragrunt_config(find_in_parent_folders("env.hcl"))`.
-- Optional on/off switch via `try(local.env.locals.<name>.enabled, true)` + `exclude { if = !local.enabled, actions = ["all"] }`.
+- Optional on/off switch via `try(local.env.locals.<name>.enabled, false)` + `exclude { if = !local.enabled, actions = ["all"] }`.
 - `terraform { source = "${get_repo_root()}/infra/modules/<name>" }`.
 - One `dependency "<other_unit>"` per upstream output you consume. Always provide realistic `mock_outputs` + `mock_outputs_allowed_terraform_commands`.
 - `inputs = {}`: feature config from `local.env.locals.<name>.*`, cluster/issuer/etc. from `dependency.*.outputs.*`, R2 from `include.root.locals.r2_*`.

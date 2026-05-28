@@ -107,7 +107,7 @@ That is why the DNS unit sits before the UI units even though those modules do n
 
 ## Optional units
 
-Some units can be excluded from a run with an `enabled` flag in `infra/<env>/env.hcl`. Argo CD and CloudNativePG default to enabled. SigNoz and Harbor are wired defensively so a missing flag defaults to disabled in their unit, while the provided dev environment enables them explicitly.
+Some units can be excluded from a run with an `enabled` flag in `infra/<env>/env.hcl`. Argo CD, CloudNativePG, SigNoz, and Harbor are all wired defensively — a missing flag defaults to disabled in their unit, so a brand-new environment installs only what it explicitly opts in to. The provided dev environment enables all four.
 
 The DNS unit also looks at service enablement flags when building records. If you do not want DNS for an optional bundled service in a new environment, disable that service before the first apply.
 

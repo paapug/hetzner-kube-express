@@ -20,6 +20,7 @@ resource "helm_release" "signoz" {
   values = [
     templatefile("${path.module}/values/signoz.yaml.tpl", {
       storage_class = var.storage_class
+      pvc_sizes     = var.pvc_sizes
     })
   ]
 

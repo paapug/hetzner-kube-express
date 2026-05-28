@@ -53,7 +53,8 @@ Review at least:
 | `cert_manager.acme_use_staging` | Keep `true` for testing; set `false` when you want production Let's Encrypt certs. |
 | `argocd.host`, `signoz.host`, `harbor.host` | Hostnames must be unique across environments. |
 | `argocd.enabled`, `cnpg.enabled`, `signoz.enabled`, `harbor.enabled` | Disable optional units before the first apply if you do not want them installed. |
-| `harbor.pvc_sizes` | Tune the five Harbor PVC sizes (registry / jobservice / database / redis / trivy) if the defaults are too generous or too small for this environment. Hetzner volumes are grow-only. |
+| `signoz.pvc_sizes` | Tune the three SigNoz PVC sizes (clickhouse / zookeeper / signoz) if the defaults are too small for this environment. Hetzner volumes are grow-only. |
+| `harbor.pvc_sizes` | Tune the five Harbor PVC sizes (registry / jobservice / database / redis / trivy) if the defaults are too small for this environment. Hetzner volumes are grow-only. |
 | `r2_*` overrides | Only set these if this environment should use a different R2 account, bucket, or AWS profile. |
 
 Do not put tokens, SSH keys, kubeconfigs, or passwords in `env.hcl`. Those belong in R2 and are created by the bootstrap script.

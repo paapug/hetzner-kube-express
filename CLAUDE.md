@@ -55,7 +55,7 @@ Module side (`infra/modules/<name>/`):
 
 Terragrunt side (`infra/<env>/<name>/terragrunt.hcl`):
 - `include "root" { ... expose = true }` + `local.env = read_terragrunt_config(find_in_parent_folders("env.hcl"))`.
-- Optional on/off switch: read `try(local.env.locals.<name>.enabled, true)` and wrap with `exclude { if = !local.enabled, actions = ["all"] }`.
+- Optional on/off switch: read `try(local.env.locals.<name>.enabled, false)` and wrap with `exclude { if = !local.enabled, actions = ["all"] }`.
 - `terraform { source = "${get_repo_root()}/infra/modules/<name>" }`.
 - One `dependency "<other_unit>"` per upstream output you consume. Always provide realistic `mock_outputs` + `mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]`.
 - `inputs = {}`: feature config from `local.env.locals.<name>.*`, cluster/issuer/etc. from `dependency.*.outputs.*`, R2 from `include.root.locals.r2_*`.
