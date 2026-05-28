@@ -13,7 +13,7 @@ An opinionated, cheap, startup-ready Kubernetes platform on Hetzner Cloud:
 - **State + secrets:** Cloudflare R2 (S3-compatible) — one bucket holds both `state/<env>/<unit>/terraform.tfstate` and `secrets/<env>/secrets.json`.
 - **Driver:** Terragrunt orchestrates units with a DAG (no Make / Ansible Vault / shared passphrases).
 
-Design priority: a single `terragrunt run --all apply` should take the user from zero to a batteries-included cluster with good practices. Trade-offs are documented in `README.md` ("Trade-offs" section) — respect them before adding deps or services.
+Design priority: a single `terragrunt run --all apply` should take the user from zero to a batteries-included cluster with good practices.
 
 ## Repo layout
 

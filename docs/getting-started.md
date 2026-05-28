@@ -1,6 +1,6 @@
 # Getting started
 
-An opinionated, batteries-included, startup-ready Kubernetes platform on Hetzner Cloud driven by Terragrunt. This page walks a cluster owner through the one-time setup.
+This page walks a cluster owner through the one-time setup.
 
 ## Prerequisites
 

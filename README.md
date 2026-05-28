@@ -191,7 +191,7 @@ cd infra/dev/signoz && terragrunt apply
 - [x] SigNoz observability stack
 - [ ] Authentik / Zitadel
 - [ ] Allow additional Helm values to be passed to the modules
-- [ ] Documentation (lol)
+- [x] Documentation (lol)
 - [ ] CI Tests
 - [ ] ...
 - [ ] Modular cluster provider?
