@@ -2,6 +2,8 @@
 
 Harbor is the bundled container registry. It runs alongside [Trivy](https://github.com/aquasecurity/trivy) for image vulnerability scanning. In the provided environment it is enabled by default, so a normal `terragrunt run --all apply` installs the Harbor chart, a Traefik Ingress, and the bundled Postgres and Redis.
 
+![Harbor UI screenshot](img/harbor/harbor-ui.png)
+
 ## Configure or disable it
 
 Harbor is configured from `infra/<env>/env.hcl`. That is where you control whether it is enabled, which hostname it uses, the chart version, and the size of its persistent volumes.

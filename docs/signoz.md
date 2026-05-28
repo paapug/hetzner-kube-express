@@ -2,6 +2,9 @@
 
 SigNoz is the bundled observability stack. In the provided environment it is enabled by default, so a normal `terragrunt run --all apply` installs the SigNoz chart, the Kubernetes infrastructure integration, a Traefik Ingress, and the dashboard importer.
 
+![Host metrics for a worker node](img/signoz/worker-metrics.png)
+
+
 ## Configure or disable it
 
 SigNoz is configured from `infra/<env>/env.hcl`. That is where you control whether it is enabled, which hostname it uses, chart versions, and the size of its persistent volumes.
