@@ -79,8 +79,10 @@ Bootstrap does several things:
 
 Bootstrap refuses to overwrite an existing `secrets.json`.
 
-!!! danger "`FORCE=1` rotates the cluster SSH key"
-    Setting `FORCE=1` overwrites the R2 object and generates a new cluster SSH key pair. Anyone (or any automation) still using the previous private key will be locked out of node-level SSH until they re-fetch.
+!!! danger "`FORCE=1` is for fresh environments, not live clusters"
+    Setting `FORCE=1` overwrites `secrets.json` and generates a new cluster SSH key pair. Hetzner injects SSH keys via cloud-init at server creation time, so existing nodes keep authorizing only the previous key. Running `FORCE=1` against a live cluster therefore breaks Terraform-driven node management (kube-hetzner can no longer SSH in) without granting access to the new key.
+
+    Use `FORCE=1` only when you intend to rebuild from a clean slate, or when no cluster exists yet for this environment. See [Troubleshooting](troubleshooting.md) for the recovery options if it was run by mistake.
 
 ## Edit secrets.json
 

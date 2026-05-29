@@ -87,17 +87,17 @@ terragrunt dag graph
 
 `cluster` provisions the Hetzner infrastructure through the kube-hetzner module. It reads the Hetzner token and SSH keys from R2, creates the k3s cluster, exposes node IP outputs, and writes the rendered kubeconfig back to R2.
 
-`acme` creates the cert-manager `ClusterIssuer`. It uses the kubeconfig from `cluster` and the ACME settings from `env.hcl`. Its issuer name is passed to services that need TLS certificates.
+[`acme`](acme.md) creates the cert-manager `ClusterIssuer`. It uses the kubeconfig from `cluster` and the ACME settings from `env.hcl`. Its issuer name is passed to services that need TLS certificates.
 
-`cloudflare-dns` creates Cloudflare `A` records for enabled ingress hostnames. It reads the Cloudflare API token from R2 and points records at the current worker node public IPs from `cluster`.
+[`cloudflare-dns`](cloudflare-dns.md) creates Cloudflare `A` records for enabled ingress hostnames. It reads the Cloudflare API token from R2 and points records at the current worker node public IPs from `cluster`.
 
-`cnpg` installs the CloudNativePG operator. It depends on `cluster` because it installs into Kubernetes, but no other unit currently depends on it.
+[`cnpg`](cnpg.md) installs the CloudNativePG operator. It depends on `cluster` because it installs into Kubernetes, but no other unit currently depends on it.
 
-`argocd` installs Argo CD and exposes it with a Traefik `Ingress`. It depends on `cluster` for Kubernetes access, `acme` for the issuer name, and `cloudflare-dns` so the hostname resolves before HTTP-01 validation.
+[`argocd`](argocd.md) installs Argo CD and exposes it with a Traefik `Ingress`. It depends on `cluster` for Kubernetes access, `acme` for the issuer name, and `cloudflare-dns` so the hostname resolves before HTTP-01 validation.
 
-`signoz` installs SigNoz, the Kubernetes infrastructure integration, the dashboard importer, and a Traefik `Ingress`. Like Argo CD, it waits for the cluster, ACME issuer, and DNS records.
+[`signoz`](signoz.md) installs SigNoz, the Kubernetes infrastructure integration, the dashboard importer, and a Traefik `Ingress`. Like Argo CD, it waits for the cluster, ACME issuer, and DNS records.
 
-`harbor` installs Harbor (container registry + Trivy scanner) via Helm and exposes the UI and registry through a Traefik `Ingress`. Like Argo CD and SigNoz, it waits for the cluster, ACME issuer, and DNS records.
+[`harbor`](harbor.md) installs Harbor (container registry + Trivy scanner) via Helm and exposes the UI and registry through a Traefik `Ingress`. Like Argo CD and SigNoz, it waits for the cluster, ACME issuer, and DNS records.
 
 ## Why some dependencies are only for ordering
 

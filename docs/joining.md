@@ -13,9 +13,15 @@ That's it. Everything else (Hetzner token, Cloudflare token, cluster SSH key, ku
 
 1. Install tools.
 
-    ```bash
-    brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
-    ```
+    === "macOS (Homebrew)"
+
+        ```bash
+        brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
+        ```
+
+    === "Linux"
+
+        See the install links in [Getting started](getting-started.md#initial-setup-cluster-owner-once). Teammates need the same toolchain as the cluster owner.
 
 2. Add the R2 keys to `~/.aws/credentials` under the profile name from [`infra/root.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/root.hcl) (`r2_aws_profile_default`).
 

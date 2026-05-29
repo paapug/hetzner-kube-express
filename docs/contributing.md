@@ -159,7 +159,7 @@ git commit -m "bump cc-devops-skills to <tag-or-sha>"
 
 ### Use Let's Encrypt staging
 
-The default `infra/dev/env.hcl` ships with `cert_manager.acme_use_staging = true` so you don't burn through the production LE rate limit while iterating. On macOS, trust the staging roots once:
+When iterating on `infra/modules/` and running repeated full applies, set `cert_manager.acme_use_staging = true` in `infra/dev/env.hcl` so you don't burn through Let's Encrypt's production rate limits. On macOS, trust the staging roots once:
 
 ```bash
 infra/_scripts/trust-le-staging.sh enable    # add LE staging roots to login keychain
@@ -167,7 +167,10 @@ infra/_scripts/trust-le-staging.sh status    # check
 infra/_scripts/trust-le-staging.sh disable   # remove
 ```
 
-Only flip `acme_use_staging = false` once everything is working end-to-end.
+Flip back to `acme_use_staging = false` once the change is working end-to-end and you're ready to validate against production certificates.
+
+!!! tip "The pre-commit hook does the commit-side flip for you"
+    With the [pre-commit hook installed](#secrets), every staged copy of `infra/<env>/env.hcl` gets `acme_use_staging` rewritten to `false` automatically, so you cannot accidentally commit `true`. The flag in your worktree stays whatever you set it to, so flip it back locally only when you actually want to test against production LE before opening the PR.
 
 ### Test both apply *and* destroy
 

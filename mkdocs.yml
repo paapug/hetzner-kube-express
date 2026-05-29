@@ -75,7 +75,14 @@ nav:
       - Adding environments: adding-environments.md
       - Ingress: ingress.md
       - Persistent Volumes: persistent-volumes.md
+      - Troubleshooting: troubleshooting.md
+  - Bundled services:
+      - Argo CD: argocd.md
+      - CloudNativePG: cnpg.md
       - SigNoz: signoz.md
       - Harbor: harbor.md
+  - Cluster wiring:
+      - ACME (Let's Encrypt): acme.md
+      - Cloudflare DNS: cloudflare-dns.md
 
 

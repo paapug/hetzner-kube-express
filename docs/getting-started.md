@@ -14,9 +14,20 @@ You need:
 
 1. Install tools.
 
-    ```bash
-    brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
-    ```
+    === "macOS (Homebrew)"
+
+        ```bash
+        brew install hashicorp/tap/terraform terragrunt awscli jq hcl2json hashicorp/tap/packer hcloud
+        ```
+
+    === "Linux"
+
+        Most distributions do not package all of these directly. Use each project's official install instructions:
+
+        - [Terraform](https://developer.hashicorp.com/terraform/install) and [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/) (HashiCorp / Gruntwork download pages)
+        - [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+        - [Packer](https://developer.hashicorp.com/packer/install) and the [hcloud CLI](https://github.com/hetznercloud/cli/releases)
+        - `jq` and `hcl2json` from your distro package manager (or `hcl2json` from its [releases](https://github.com/tmccombs/hcl2json/releases))
 
 2. Set R2 details in [`infra/root.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/root.hcl): `r2_account_id_default`, `r2_bucket_default`, `r2_aws_profile_default`. These apply to every environment unless an `env.hcl` overrides them.
 
@@ -61,3 +72,5 @@ Share with teammates: the AWS profile keys (via password manager).
 ## Next steps
 
 To invite someone onto the cluster, send them to [Joining as a teammate](joining.md). To create another environment, see [Adding environments](adding-environments.md). For the full Terragrunt/module dependency map, read [How it fits together](how-it-fits-together.md).
+
+If something went wrong during the first apply, [Troubleshooting](troubleshooting.md) collects the common failures and their fixes.

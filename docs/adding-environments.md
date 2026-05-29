@@ -77,7 +77,7 @@ Bootstrap creates or uploads `secrets/<new-env>/secrets.json` in R2. That object
 
 Bootstrap may also build the kube-hetzner MicroOS snapshot in the Hetzner project if no suitable snapshot exists yet.
 
-If `secrets.json` already exists, bootstrap refuses to overwrite it. `FORCE=1` overwrites the object and rotates the cluster SSH key material for that environment, so use it carefully.
+If `secrets.json` already exists, bootstrap refuses to overwrite it. `FORCE=1` overwrites the object and generates a new cluster SSH key pair, but it does **not** push the new key to any already-existing Hetzner nodes for that environment. Only use `FORCE=1` when you intend to start from scratch (no cluster yet, or you're about to destroy and rebuild). For details, see [Secrets and helper scripts](secrets-and-scripts.md) and the recovery options in [Troubleshooting](troubleshooting.md).
 
 ## Inspect and apply
 
