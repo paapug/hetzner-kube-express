@@ -4,7 +4,7 @@ Guidance for AI agents working in this repo. Keep edits aligned with the convent
 
 ## What this project is
 
-An opinionated, cheap, startup-ready Kubernetes platform on Hetzner Cloud:
+A batteries-included, cheap, startup-ready Kubernetes platform on Hetzner Cloud:
 
 - **Compute:** k3s on Hetzner via the [`kube-hetzner`](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner) Terraform module (cx23 nodes in `fsn1`).
 - **Network:** Cilium as CNI with kube-proxy replacement + Hubble. Klipper (k3s ServiceLB) exposes Traefik on every node's public IP — no paid Hetzner LB.

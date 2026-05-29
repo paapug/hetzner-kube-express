@@ -1,5 +1,5 @@
 site_name: hetzner-kube-express
-site_description: An opinionated, startup-ready Kubernetes platform on Hetzner Cloud.
+site_description: A batteries-included, cheap, startup-ready Kubernetes platform on Hetzner Cloud.
 site_url: https://paapug.github.io/hetzner-kube-express/
 repo_url: https://github.com/paapug/hetzner-kube-express
 repo_name: paapug/hetzner-kube-express
