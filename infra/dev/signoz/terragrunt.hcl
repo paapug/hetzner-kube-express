@@ -35,13 +35,13 @@ dependency "acme" {
   mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]
 }
 
-# DNS must exist before apply: cert-manager HTTP-01 needs signoz_host
-# resolving to a node IP for Let's Encrypt to reach Traefik.
-dependency "cloudflare_dns" {
-  config_path = "../cloudflare-dns"
+# Timing only: ExternalDNS must be running before this Ingress is created so it
+# publishes signoz_host shortly after, letting cert-manager HTTP-01 succeed.
+dependency "external_dns" {
+  config_path = "../external-dns"
 
   mock_outputs = {
-    records_created = []
+    namespace = "external-dns"
   }
   mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]
 }

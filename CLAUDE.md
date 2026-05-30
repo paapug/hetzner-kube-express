@@ -8,7 +8,7 @@ A batteries-included, cheap, startup-ready Kubernetes platform on Hetzner Cloud:
 
 - **Compute:** k3s on Hetzner via the [`kube-hetzner`](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner) Terraform module (cx23 nodes in `fsn1`).
 - **Network:** Cilium as CNI with kube-proxy replacement + Hubble. Klipper (k3s ServiceLB) exposes Traefik on every node's public IP — no paid Hetzner LB.
-- **TLS / DNS:** cert-manager (bundled by `kube-hetzner`) + Let's Encrypt HTTP-01 via Traefik. Cloudflare DNS A records point hostnames to agent node IPs (DNS round-robin, `proxied = false` so HTTP-01 reaches Traefik).
+- **TLS / DNS:** cert-manager (bundled by `kube-hetzner`) + Let's Encrypt HTTP-01 via Traefik. ExternalDNS watches Ingress objects and publishes Cloudflare A records pointing at agent node IPs (DNS round-robin, `proxied = false` so HTTP-01 reaches Traefik).
 - **GitOps:** Argo CD via Helm with a Traefik Ingress.
 - **State + secrets:** Cloudflare R2 (S3-compatible) — one bucket holds both `state/<env>/<unit>/terraform.tfstate` and `secrets/<env>/secrets.json`.
 - **Driver:** Terragrunt orchestrates units with a DAG (no Make / Ansible Vault / shared passphrases).
@@ -23,7 +23,7 @@ infra/
 ├── modules/                # Plain Terraform modules (the "how")
 │   ├── cluster/            # kube-hetzner + reads secrets from R2 + uploads kubeconfig
 │   ├── acme/               # Let's Encrypt ClusterIssuer
-│   ├── cloudflare-dns/     # Cloudflare A records (e.g. argocd_host -> node IPs)
+│   ├── external-dns/       # ExternalDNS Helm release (Cloudflare A records from Ingress)
 │   └── argocd/             # Argo CD Helm release + Traefik Ingress
 ├── _scripts/               # R2 ops helpers (bootstrap, secrets-edit, fetch-kubeconfig, fetch-ssh-key)
 └── dev/                    # An environment (copy to add staging/prod)
@@ -31,7 +31,7 @@ infra/
     └── <unit>/terragrunt.hcl   # Wires module + dependencies + inputs
 ```
 
-Apply DAG: `cluster` → (`acme`, `cloudflare-dns`, `cnpg` in parallel) → (`argocd`, `signoz`, `harbor` in parallel).
+Apply DAG: `cluster` → (`acme`, `external-dns`, `cnpg` in parallel) → (`argocd`, `signoz`, `harbor` in parallel). The decommissioned `cloudflare-dns` unit (empty no-op, kept one release) depends on `external-dns` so a single apply tears down the old records.
 
 ## Conventions to follow
 

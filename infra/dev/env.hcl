@@ -8,9 +8,14 @@ locals {
   operator_email = "REPLACE_WITH_OPERATOR_EMAIL"
 
   cloudflare = {
-    zone_id                       = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
-    domain                        = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
-    additional_ingress_subdomains = []
+    zone_id = "REPLACE_WITH_CLOUDFLARE_ZONE_ID"
+    domain  = "REPLACE_WITH_CLOUDFLARE_DOMAIN"
+  }
+
+  external_dns = {
+    enabled       = true
+    chart_version = "1.21.1" # https://github.com/kubernetes-sigs/external-dns/releases (appVersion 0.21.0)
+    namespace     = "external-dns"
   }
 
   hetzner = {
@@ -32,9 +37,10 @@ locals {
         name        = "worker-fsn1"
         server_type = "cx23"
         location    = "fsn1"
-        labels      = []
-        taints      = []
-        count       = 3
+        # enablelb flips Klipper to allow-list mode so only agents are exposed
+        labels = ["svccontroller.k3s.cattle.io/enablelb=true"]
+        taints = []
+        count  = 3
       },
     ]
   }
