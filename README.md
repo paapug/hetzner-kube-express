@@ -1,5 +1,7 @@
 <div align="center">
 
+<img alt="hetzner-kube-express logo" src="docs/img/logo.svg" width="160">
+
 <h1>hetzner-kube-express</h1>
 
 <p><strong>Cheap, batteries-included Kubernetes on Hetzner Cloud.</strong></p>
