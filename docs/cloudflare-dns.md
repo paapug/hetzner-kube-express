@@ -1,34 +1,43 @@
-# Cloudflare DNS
+# (deprecated) Cloudflare DNS
 
-The `cloudflare-dns` unit creates Cloudflare `A` records for the hostnames each environment uses. It reads the Cloudflare API token from R2, the zone ID and domain from `env.hcl`, and the worker node public IPs from the `cluster` unit's outputs.
+The `cloudflare-dns` unit was the DNS mechanism in v0.1.0. It created Cloudflare `A` records directly from Terraform, using hostnames from `env.hcl` and worker node public IPs from the `cluster` unit.
 
-Each enabled bundled service (Argo CD, SigNoz, Harbor) automatically gets `A` records that point at every worker node IP. Together with Klipper exposing Traefik on every node, that gives simple DNS round-robin without a paid load balancer.
+In v0.2.0, active DNS management moved to [ExternalDNS](external-dns.md). ExternalDNS watches Kubernetes `Ingress` objects and reconciles Cloudflare records from the hostnames and status IPs Kubernetes publishes.
 
-For the full picture of how requests flow from a browser through DNS, Traefik, and into a pod, see [Bundled ingress](ingress.md).
+!!! warning "Use ExternalDNS for v0.2.0 and newer"
+    This page is kept for readers upgrading from v0.1.0 or reading old state. New hostnames should be configured with Kubernetes `Ingress` objects, not with `cloudflare-dns`.
 
-## Configure
+## What this unit did in v0.1.0
 
-The relevant settings in `infra/<env>/env.hcl`:
+The v0.1.0 `cloudflare-dns` unit:
 
-```hcl
-cloudflare = {
-  zone_id                       = "<cloudflare-zone-id>"
-  domain                        = "<example.com>"
-  additional_ingress_subdomains = []
-}
+- read the Cloudflare API token from R2;
+- read the Cloudflare zone and base domain from `infra/<env>/env.hcl`;
+- read worker node public IPs from the `cluster` unit;
+- created unproxied Cloudflare `A` records for bundled service hostnames;
+- expanded `cloudflare.additional_ingress_subdomains` into extra records under the base domain.
+
+Together with Klipper exposing Traefik on each worker, those records gave simple DNS round-robin without a paid load balancer.
+
+## What changed in v0.2.0
+
+The `cloudflare-dns` unit still exists in v0.2.0, but only as a decommissioning unit. Its module no longer declares DNS records. During a normal `terragrunt run --all apply`, Terraform sees that the old records are gone from configuration and destroys the records it created in v0.1.0.
+
+The unit is kept for one release so upgrades can clean up state instead of orphaning it. A later release can remove the unit once users have had a chance to apply v0.2.0.
+
+The new path is:
+
+```mermaid
+flowchart LR
+  Ingress["Kubernetes Ingress"] --> ExternalDNS["external-dns"]
+  ExternalDNS --> CloudflareDNS["Cloudflare DNS"]
 ```
 
-| Setting | What it controls |
-| --- | --- |
-| `zone_id` | The Cloudflare zone whose records this environment is allowed to manage. Pick the zone for the domain this environment owns. |
-| `domain` | Base domain used to expand `additional_ingress_subdomains` into FQDNs. |
-| `additional_ingress_subdomains` | Extra subdomains under `domain` that should resolve to the worker nodes. |
+See [ExternalDNS](external-dns.md) for the active v0.2.0 DNS model.
 
-Hostnames for the bundled services (`argocd.host`, `signoz.host`, `harbor.host`) come from the per-service blocks in the same file. Disabled services are skipped automatically.
+## `additional_ingress_subdomains`
 
-## Adding an app hostname
-
-To create a Cloudflare record for your own app, add a subdomain to `cloudflare.additional_ingress_subdomains`:
+In v0.1.0, this setting created extra Terraform-managed DNS records:
 
 ```hcl
 cloudflare = {
@@ -42,56 +51,28 @@ cloudflare = {
 }
 ```
 
-Each entry is expanded under `cloudflare.domain` (so `app` becomes `app.example.com`) and gets one `A` record per worker IP. Apply the DNS unit:
+In v0.2.0, it no longer drives DNS. Set it to an empty array if it still exists in your environment file:
 
-```bash
-cd infra/<env>/cloudflare-dns
-terragrunt apply
+```hcl
+cloudflare = {
+  zone_id = "<cloudflare-zone-id>"
+  domain  = "<example.com>"
+
+  additional_ingress_subdomains = []
+}
 ```
 
-Your `Service` and `Ingress` still live in Kubernetes (or in whatever Argo CD is syncing). The DNS unit only manages the records.
+Then configure each extra hostname on the Kubernetes `Ingress` for that app. ExternalDNS will create the matching Cloudflare record from the Ingress.
 
-!!! tip "Subdomain, not FQDN"
-    Entries in `additional_ingress_subdomains` must be relative to `cloudflare.domain`. Use `app`, not `app.example.com` or `https://app.example.com/`. The unit validates this and refuses malformed values.
+## Upgrade note
 
-## Round-robin behaviour
+Upgrading from v0.1.0 to v0.2.0 is meant to happen through the normal full apply:
 
-For unproxied records, Cloudflare returns every `A` record for the hostname in [rotating order](https://developers.cloudflare.com/dns/manage-dns-records/how-to/round-robin-dns/). Clients that always try the first answer therefore spread roughly evenly across workers over time.
+```bash
+cd infra/<env>
+terragrunt run --all apply
+```
 
-This is simple load sharing, not a managed load balancer:
+During that apply, ExternalDNS is installed and the old Terraform-managed records are removed. A short DNS interruption of less than one minute is expected while Cloudflare records created by `cloudflare-dns` are deleted and ExternalDNS reconciles its own records.
 
-- DNS and client caches can make traffic uneven.
-- Plain round-robin does not health-check workers, so a wedged node can keep getting traffic until Cloudflare TTL expires (default 300 s in this project).
-- For real load balancing with health checks, switch to a Hetzner Load Balancer or front the worker IPs with Cloudflare's Load Balancing product. Both cost more than the default setup.
-
-## Proxy mode
-
-Records are managed with Cloudflare proxying disabled (`proxied = false`).
-
-!!! danger "Do not enable Cloudflare proxy"
-    cert-manager currently uses HTTP-01, and those challenges need to reach Traefik directly. Flipping `proxied = true` breaks certificate issuance and renewal. Only enable proxy mode if you also switch the ACME solver to something compatible, such as DNS-01.
-
-See [ACME (Let's Encrypt)](acme.md) for the certificate flow and [Bundled ingress](ingress.md) for the full traffic path.
-
-## Partial applies and stale DNS
-
-If you change worker node pools and run a full environment apply, Terragrunt updates the cluster first and then reconciles DNS automatically.
-
-!!! warning "Apply DNS after a cluster-only apply"
-    If you apply only the `cluster` unit after changing node pools, Cloudflare keeps pointing at the old worker IPs until you also apply the DNS unit. Until you do, traffic can land on workers that no longer exist:
-
-    ```bash
-    cd infra/<env>/cluster
-    terragrunt apply
-
-    cd ../cloudflare-dns
-    terragrunt apply
-    ```
-
-The full-environment apply path does this automatically because of the unit dependency graph.
-
-## Token scope
-
-The Cloudflare API token in R2 needs `DNS:Read` and `DNS:Write` on the zone (`zone_id`) this environment manages. It does not need account-level permissions, and it should not be the global API key.
-
-If the token has the wrong scope, the unit fails on apply with a Cloudflare 4xx. Rotate the token via the Cloudflare UI, update `secrets.json` in R2 with `secrets-edit.sh`, and re-run apply.
+For the full release note and upgrade checklist, see [Changelog and upgrades](changelog.md).

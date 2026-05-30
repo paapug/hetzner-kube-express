@@ -48,6 +48,7 @@ Review at least:
 | `operator_email` | Email for Let's Encrypt and the bundled SigNoz admin user. |
 | `cloudflare.zone_id` | Zone ID for the domain this environment will manage. |
 | `cloudflare.domain` | Base domain or subdomain for this environment. |
+| `external_dns.enabled`, `external_dns.chart_version` | Whether ExternalDNS runs, and which chart version it uses. |
 | `hetzner.*_nodepools` | Server types, locations, labels, taints, and counts. |
 | `hetzner_firewall.*` | SSH and Kubernetes API source CIDRs. Tighten these for serious environments. |
 | `cert_manager.acme_use_staging` | Keep `true` for testing; set `false` when you want production Let's Encrypt certs. |
@@ -94,7 +95,7 @@ Then apply the environment:
 terragrunt run --all apply
 ```
 
-The apply order is the same as the example environment: `cluster` first, then the units that need the cluster, then the UI and observability units that need DNS and ACME to be ready.
+The apply order is the same as the example environment: `cluster` first, then the units that need the cluster, then the UI and observability units that need ExternalDNS and ACME to be ready.
 
 ## Fetch access
 
@@ -116,9 +117,9 @@ The kubeconfig is stored at `secrets/<new-env>/kubeconfig.yaml` in R2. The SSH k
 
 R2 paths are based on the environment folder name. Renaming `infra/staging` later effectively changes where Terragrunt looks for state and secrets.
 
-Cloudflare hostnames must not collide across environments. If both dev and staging try to own the same hostname, the DNS unit will fight over the same records.
+Cloudflare hostnames must not collide across environments. If both dev and staging create Ingresses for the same hostname, ExternalDNS ownership records will fight over the same name.
 
-If you apply only `cluster` after changing node pools, apply `cloudflare-dns` afterwards so DNS points at the current worker IPs.
+Agent node pools that should receive public ingress traffic need the `svccontroller.k3s.cattle.io/enablelb=true` label. Without it, Traefik may not be exposed on that pool and ExternalDNS will not publish its IPs.
 
 Production certificates require `cert_manager.acme_use_staging = false`. Make that change deliberately, and remember that staging certificates are not trusted by normal browsers unless you trust the staging roots locally.
 

@@ -1,14 +1,27 @@
-# Changelog
+# Changelog and upgrades
 
-All notable changes to this project will be documented here.
+This project is still early, so release notes focus on what changed, why it matters, and what to watch during upgrades.
 
-This project is still early, so the changelog is intentionally human-sized: what changed, why it matters, and what to watch out for.
+## Upgrade rule
+
+Upgrade minor versions one by one. For example, go from `0.1.x` to `0.2.x` before moving to a later minor release.
+
+Some releases keep decommissioning units around for one minor version so Terraform can delete resources created by the previous version. If you skip the intermediate release, Terragrunt may no longer discover the old unit folder, and the old resources can be left orphaned.
+
+For each minor upgrade:
+
+```bash
+cd infra/<env>
+terragrunt run --all apply
+```
+
+Review the release notes for that version before applying, especially when the release changes ownership of cloud resources.
 
 ## v0.2.0 - ExternalDNS takes over Cloudflare records
 
 Released: 2026-05-30
 
-This release replaces the Terraform-managed `cloudflare-dns` records from v0.1.0 with a preconfigured ExternalDNS controller. DNS is now driven by Kubernetes `Ingress` objects, which makes hostnames follow the same source of truth as Traefik routing and cert-manager certificates.
+This release replaces the Terraform-managed `cloudflare-dns` records from v0.1.0 with a preconfigured [ExternalDNS](external-dns.md) controller. DNS is now driven by Kubernetes `Ingress` objects, which makes hostnames follow the same source of truth as Traefik routing and cert-manager certificates.
 
 ### Added
 
@@ -23,14 +36,14 @@ This release replaces the Terraform-managed `cloudflare-dns` records from v0.1.0
 - Custom DNS entries are no longer configured through `cloudflare.additional_ingress_subdomains`. Additional domains must be configured with Kubernetes `Ingress` objects.
 - `cloudflare.additional_ingress_subdomains` should be set to an empty array if it still exists in your environment file:
 
-  ```hcl
-  cloudflare = {
-    zone_id = "<cloudflare-zone-id>"
-    domain  = "<example.com>"
+    ```hcl
+    cloudflare = {
+      zone_id = "<cloudflare-zone-id>"
+      domain  = "<example.com>"
 
-    additional_ingress_subdomains = []
-  }
-  ```
+      additional_ingress_subdomains = []
+    }
+    ```
 
 ### Deprecated
 
@@ -38,8 +51,6 @@ This release replaces the Terraform-managed `cloudflare-dns` records from v0.1.0
 - In v0.2.0, the retained `cloudflare-dns` unit is only a decommissioning unit. It lets `terragrunt run --all apply` destroy the records created by v0.1.0 instead of orphaning them.
 
 ### Upgrade from v0.1.0
-
-Upgrade minor versions one by one. Decommissioning units are kept for one minor version so Terraform can delete resources created by the previous version; skipping that version can orphan old resources and state.
 
 Before applying, set `cloudflare.additional_ingress_subdomains = []` if that value exists locally. This avoids carrying forward old app-hostname configuration and helps prevent git conflicts around a setting that no longer controls DNS.
 
@@ -51,6 +62,8 @@ terragrunt run --all apply
 ```
 
 During the upgrade, a short DNS interruption of less than one minute is expected. The old records created by `cloudflare-dns` are deleted, and ExternalDNS recreates the records it owns on its reconcile loop, which runs about once per minute.
+
+After the apply, extra application hostnames should exist on their Kubernetes `Ingress` resources. See [ExternalDNS](external-dns.md) and [Bundled ingress](ingress.md) for the v0.2.0 model.
 
 ## v0.1.0 - the cheap Kubernetes launchpad
 
@@ -71,4 +84,3 @@ First proper release of `hetzner-kube-express`: a batteries-included k3s platfor
 - Harbor as the bundled container registry, including Trivy image scanning.
 - Helper scripts for bootstrapping environments, editing R2 secrets, fetching kubeconfig, fetching SSH keys, and trusting Let's Encrypt staging roots on macOS.
 - MkDocs Material documentation site with setup, teammate onboarding, architecture, service guides, ingress, persistent volumes, troubleshooting, and contributing notes.
-

@@ -39,9 +39,9 @@ Every unit has `mock_outputs` for `plan`, `validate`, `init`, and `destroy`. If 
 
 cert-manager cannot complete the HTTP-01 challenge. Common causes, in order of likelihood:
 
-1. **DNS has not propagated yet.** Wait a few minutes, then `dig <host>`.
+1. **ExternalDNS has not reconciled yet.** Wait a minute, then `dig @1.1.1.1 <host>`.
 2. **Cloudflare proxy is enabled** on the hostname. HTTP-01 needs requests to reach Traefik directly. Set `proxied = false` for ingress records. See [ACME (Let's Encrypt)](acme.md).
-3. **Stale Cloudflare records** from a previous cluster point at the wrong IPs. Apply `cloudflare-dns` after applying `cluster`.
+3. **Stale Cloudflare records** from a previous cluster point at the wrong IPs. Check the Ingress address and ExternalDNS logs to confirm the controller is reconciling the current agent IPs.
 
 Inspect the certificate status:
 
@@ -68,18 +68,21 @@ Each registered domain is limited to a fixed number of new certificates per week
 
 ## DNS
 
-### Traffic still goes to old worker IPs after scaling nodes
+### Traffic still goes to old agent IPs after scaling nodes
 
-`cloudflare-dns` needs to run after `cluster` for records to follow the new IPs.
-
-A full `terragrunt run --all apply` reconciles both. If you applied only the `cluster` unit, apply DNS afterwards:
+ExternalDNS reconciles Cloudflare records from Kubernetes `Ingress` status. If Cloudflare still returns old IPs, first check what Kubernetes is publishing:
 
 ```bash
-cd infra/<env>/cloudflare-dns
-terragrunt apply
+kubectl get ingress -A
 ```
 
-Until the DNS unit reconciles, Cloudflare keeps returning the old IPs (and so do DNS caches downstream of Cloudflare).
+If the Ingress still shows old addresses, the cluster has not updated the ingress status yet. If the Ingress shows the right agent IPs but Cloudflare does not, check ExternalDNS:
+
+```bash
+kubectl -n external-dns logs deploy/external-dns
+```
+
+Cloudflare and downstream DNS caches can also keep returning old answers briefly after ExternalDNS has updated the records.
 
 ### Wrong zone or wrong domain
 

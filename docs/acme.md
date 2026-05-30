@@ -56,7 +56,7 @@ cert-manager re-issues each certificate against the production directory on the 
 
 ## How HTTP-01 works in this stack
 
-The HTTP-01 challenge is the reason Cloudflare DNS records are not proxied. cert-manager creates a challenge `Ingress` for each requested certificate; Let's Encrypt fetches a well-known URL on the hostname; the request needs to reach Traefik directly.
+The HTTP-01 challenge is the reason ExternalDNS-managed Cloudflare records are not proxied. cert-manager creates a challenge `Ingress` for each requested certificate; Let's Encrypt fetches a well-known URL on the hostname; the request needs to reach Traefik directly.
 
 The full traffic path, including the certificate flow, is in [Bundled ingress](ingress.md).
 

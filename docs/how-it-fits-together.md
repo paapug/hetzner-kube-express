@@ -53,28 +53,31 @@ Terragrunt applies units as a graph. `cluster` runs first because most other uni
 flowchart TD
   cluster[cluster]
   acme[acme]
-  cloudflareDns[cloudflare-dns]
+  externalDns[external-dns]
+  cloudflareDns["cloudflare-dns deprecated cleanup"]
   cnpg[cnpg]
   argocd[argocd]
   signoz[signoz]
   harbor[harbor]
 
   cluster --> acme
-  cluster --> cloudflareDns
+  cluster --> externalDns
   cluster --> cnpg
   acme --> argocd
-  cloudflareDns --> argocd
+  externalDns --> argocd
   acme --> signoz
-  cloudflareDns --> signoz
+  externalDns --> signoz
   acme --> harbor
-  cloudflareDns --> harbor
+  externalDns --> harbor
+  externalDns --> cloudflareDns
 ```
 
 Read it in tiers:
 
 1. `cluster` creates the k3s cluster on Hetzner and uploads a kubeconfig to R2.
-2. `acme`, `cloudflare-dns`, and `cnpg` can run after the cluster exists.
-3. `argocd`, `signoz`, and `harbor` run after the ACME issuer and DNS records are in place.
+2. `acme`, `external-dns`, and `cnpg` can run after the cluster exists.
+3. `argocd`, `signoz`, and `harbor` run after the ACME issuer and ExternalDNS controller are in place.
+4. The deprecated `cloudflare-dns` unit runs after `external-dns` during the v0.2.0 upgrade so old v0.1.0 records can be removed without orphaning state.
 
 You can ask Terragrunt for the live graph from an environment folder:
 
@@ -89,35 +92,37 @@ terragrunt dag graph
 
 [`acme`](acme.md) creates the cert-manager `ClusterIssuer`. It uses the kubeconfig from `cluster` and the ACME settings from `env.hcl`. Its issuer name is passed to services that need TLS certificates.
 
-[`cloudflare-dns`](cloudflare-dns.md) creates Cloudflare `A` records for enabled ingress hostnames. It reads the Cloudflare API token from R2 and points records at the current worker node public IPs from `cluster`.
+[`external-dns`](external-dns.md) installs ExternalDNS and preconfigures it with the Cloudflare API token from R2. It watches Kubernetes `Ingress` objects and reconciles Cloudflare `A` records from their status IPs.
+
+[`cloudflare-dns`](cloudflare-dns.md) is deprecated. It created Terraform-managed Cloudflare records in v0.1.0 and is kept in v0.2.0 only so a full apply can destroy those old records.
 
 [`cnpg`](cnpg.md) installs the CloudNativePG operator. It depends on `cluster` because it installs into Kubernetes, but no other unit currently depends on it.
 
-[`argocd`](argocd.md) installs Argo CD and exposes it with a Traefik `Ingress`. It depends on `cluster` for Kubernetes access, `acme` for the issuer name, and `cloudflare-dns` so the hostname resolves before HTTP-01 validation.
+[`argocd`](argocd.md) installs Argo CD and exposes it with a Traefik `Ingress`. It depends on `cluster` for Kubernetes access, `acme` for the issuer name, and `external-dns` so DNS starts reconciling as soon as the Ingress appears.
 
-[`signoz`](signoz.md) installs SigNoz, the Kubernetes infrastructure integration, the dashboard importer, and a Traefik `Ingress`. Like Argo CD, it waits for the cluster, ACME issuer, and DNS records.
+[`signoz`](signoz.md) installs SigNoz, the Kubernetes infrastructure integration, the dashboard importer, and a Traefik `Ingress`. Like Argo CD, it waits for the cluster, ACME issuer, and ExternalDNS.
 
-[`harbor`](harbor.md) installs Harbor (container registry + Trivy scanner) via Helm and exposes the UI and registry through a Traefik `Ingress`. Like Argo CD and SigNoz, it waits for the cluster, ACME issuer, and DNS records.
+[`harbor`](harbor.md) installs Harbor (container registry + Trivy scanner) via Helm and exposes the UI and registry through a Traefik `Ingress`. Like Argo CD and SigNoz, it waits for the cluster, ACME issuer, and ExternalDNS.
 
 ## Why some dependencies are only for ordering
 
-Not every dependency passes a value into Terraform. `argocd`, `signoz`, and `harbor` depend on `cloudflare-dns` mostly for timing: cert-manager's HTTP-01 challenge needs the public hostname to resolve to a worker node before Let's Encrypt can reach Traefik.
+Not every dependency passes a value into Terraform. `argocd`, `signoz`, and `harbor` depend on `external-dns` mostly for timing: the controller should be running before their Ingresses appear, so DNS starts reconciling immediately.
 
 That is why the DNS unit sits before the UI units even though those modules do not need a DNS output as an input.
 
 ## Optional units
 
-Some units can be excluded from a run with an `enabled` flag in `infra/<env>/env.hcl`. Argo CD, CloudNativePG, SigNoz, and Harbor are all wired defensively — a missing flag defaults to disabled in their unit, so a brand-new environment installs only what it explicitly opts in to. The provided dev environment enables all four.
+Some units can be excluded from a run with an `enabled` flag in `infra/<env>/env.hcl`. Argo CD, CloudNativePG, ExternalDNS, SigNoz, and Harbor are all wired defensively — a missing flag defaults to disabled in their unit, so a brand-new environment installs only what it explicitly opts in to. The provided dev environment enables all five.
 
-The DNS unit also looks at service enablement flags when building records. If you do not want DNS for an optional bundled service in a new environment, disable that service before the first apply.
+ExternalDNS is reactive. If you do not want DNS for an optional bundled service in a new environment, disable that service before the first apply so its Ingress is never created.
 
 ## Gotchas to know early
 
 !!! danger "Cloudflare records are intentionally unproxied"
     cert-manager uses HTTP-01 validation, and those challenges need to reach Traefik directly. Do not enable Cloudflare proxy mode for these records unless you also change the certificate flow to something compatible, such as DNS-01.
 
-!!! warning "Partial applies leave DNS stale"
-    A full `terragrunt run --all apply` updates the cluster first and then reconciles DNS. If you apply only the `cluster` unit after changing node pools, also apply `cloudflare-dns` afterwards so Cloudflare stops pointing at stale worker IPs.
+!!! warning "DNS follows Ingress status"
+    ExternalDNS publishes whatever IPs Kubernetes reports on the Ingress. If node pool changes do not show up in DNS, first check the Ingress address and then the ExternalDNS controller logs.
 
 !!! note "`plan` works on a fresh clone"
     `dependency` blocks include `mock_outputs` for `plan`, `validate`, and `init`, so a fresh clone can plan without any upstream unit having been applied yet. Real applies still use real outputs from upstream units.

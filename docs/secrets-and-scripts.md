@@ -42,7 +42,8 @@ The bucket, account, and profile defaults are configured in `infra/root.hcl`. An
 Terraform reads this object during apply:
 
 - The `cluster` module uses the Hetzner token and SSH key material.
-- The `cloudflare-dns` module uses the Cloudflare API token.
+- The `external-dns` module uses the Cloudflare API token.
+- During a v0.1.0 to v0.2.0 upgrade, the deprecated `cloudflare-dns` unit may also need that token to destroy old Terraform-managed DNS records.
 
 !!! danger "Treat R2 access keys as production secrets"
     Anyone with read access to this R2 object can retrieve the Hetzner and Cloudflare API tokens and the cluster SSH private key. Rotating all of those is time-consuming, so share the R2 keys only via a password manager and revoke them aggressively when someone leaves.

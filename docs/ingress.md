@@ -1,19 +1,21 @@
 # Bundled ingress
 
-The stack includes a ready-to-use ingress path for web UIs and applications. You get Traefik, cert-manager, Klipper ServiceLB, and Cloudflare DNS working together without a paid Hetzner load balancer.
+The stack includes a ready-to-use ingress path for web UIs and applications. You get Traefik, cert-manager, Klipper ServiceLB, and ExternalDNS working with Cloudflare DNS without a paid Hetzner load balancer.
 
 ## How traffic reaches the cluster
 
-Cloudflare DNS points each configured hostname at the public IPs of the worker nodes. Klipper exposes Traefik on those nodes, and Traefik routes requests to Kubernetes `Ingress` objects inside the cluster.
+Cloudflare DNS points each Ingress hostname at the public IPs of the agent nodes. Klipper exposes Traefik on those nodes, and Traefik routes requests to Kubernetes `Ingress` objects inside the cluster.
 
 The path looks like this:
 
 ```mermaid
 flowchart LR
   Browser["Browser"] --> CloudflareDNS["Cloudflare DNS"]
-  CloudflareDNS --> WorkerNodeIP["worker node IP"]
-  WorkerNodeIP --> Traefik["Traefik"]
+  CloudflareDNS --> AgentNodeIP["agent node IP"]
+  AgentNodeIP --> Traefik["Traefik"]
   Ingress["Kubernetes Ingress"] -->|"host and path rules"| Traefik
+  ExternalDNS["ExternalDNS"] -->|"manages records from Ingress status"| CloudflareDNS
+  Ingress -->|"hostnames and status IPs"| ExternalDNS
   Traefik --> KubernetesService["Kubernetes Service"]
   KubernetesService --> Pod["Pod"]
   Ingress -->|"references"| ClusterIssuer["ClusterIssuer"]
@@ -29,61 +31,56 @@ The `Ingress` contains the host and routing rules for Traefik. It also reference
 
 Bundled services such as Argo CD, SigNoz, and Harbor create Traefik `Ingress` objects when they are enabled. Their hostnames, enablement flags, and related environment settings live in `infra/<env>/env.hcl`.
 
-The `cloudflare-dns` unit creates Cloudflare `A` records for enabled bundled services. It creates one record per hostname and worker node IP, which gives simple DNS round-robin across the workers.
+The `external-dns` unit watches those Ingresses and creates Cloudflare `A` records for their hostnames. It creates one record per hostname and agent node IP, which gives simple DNS round-robin across the agents.
 
 For unproxied records, Cloudflare returns all `A` records for the hostname, but in random order. Cloudflare also documents this setup as [round-robin DNS](https://developers.cloudflare.com/dns/manage-dns-records/how-to/round-robin-dns/), so clients that always try the first returned address should still spread out naturally as DNS responses rotate.
 
-This is simple load sharing, not a managed load balancer. DNS and client caches can make traffic uneven, and plain round-robin DNS does not check whether a worker is healthy.
+This is simple load sharing, not a managed load balancer. DNS and client caches can make traffic uneven, and plain round-robin DNS does not check whether an agent is healthy.
 
 ## Adding your own app
 
 For an application, expose it with a normal Kubernetes `Service` and a Traefik `Ingress`. Prefer an in-cluster `ClusterIP` service behind Traefik instead of creating a new `LoadBalancer` or `NodePort`.
 
-If the hostname should be managed by Terraform, add its subdomain to `cloudflare.additional_ingress_subdomains` in `infra/<env>/env.hcl`:
+If the hostname should be managed by ExternalDNS, put it on the app's `Ingress`:
 
-```hcl
-cloudflare = {
-  zone_id = "<cloudflare-zone-id>"
-  domain  = "<example.com>"
-
-  additional_ingress_subdomains = [
-    "app",
-  ]
-}
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app
+  namespace: app
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 80
 ```
 
-The `cloudflare-dns` unit expands each subdomain under `cloudflare.domain` and creates `A` records pointing at the current worker node public IPs. Your Kubernetes `Ingress` should use the resulting hostname, such as `app.example.com`, in `spec.rules[].host` and, when TLS is enabled, in `spec.tls[].hosts`.
+ExternalDNS creates the DNS record from the Ingress hostname and status IPs. If TLS is enabled, put the same hostname in `spec.tls[].hosts` so cert-manager requests a certificate for it.
 
-After changing only app DNS settings, apply the DNS unit:
-
-```bash
-cd infra/<env>/cloudflare-dns
-terragrunt apply
-```
-
-This only creates DNS records. The application `Deployment`, `Service`, and `Ingress` still live in Kubernetes or your GitOps workflow.
+The application `Deployment`, `Service`, and `Ingress` can live in Kubernetes directly or in your GitOps workflow. ExternalDNS only manages the Cloudflare records.
 
 ## Node pool changes and DNS
 
-If you run a full environment apply, Terragrunt applies the cluster first and then updates Cloudflare DNS from the cluster's current worker node IPs:
+If you run a full environment apply, Terragrunt applies the cluster first and keeps ExternalDNS running before the bundled service Ingresses are created:
 
 ```bash
 cd infra/<env>
 terragrunt run --all apply
 ```
 
-That means scaling workers, adding an ordinary worker pool, or removing one is normally enough. The DNS records are reconciled as part of the same run.
+That means scaling agents, adding an ingress-capable agent pool, or removing one is normally enough. Kubernetes updates the Ingress addresses, and ExternalDNS reconciles Cloudflare from those addresses.
 
-!!! warning "Partial applies leave DNS stale"
-    If you apply only the `cluster` unit after changing node pools, also apply `cloudflare-dns` afterwards. Otherwise Cloudflare keeps pointing at the old worker IPs until the DNS unit is reconciled.
-
-    ```bash
-    cd infra/<env>/cluster
-    terragrunt apply
-
-    cd ../cloudflare-dns
-    terragrunt apply
-    ```
+!!! tip "Only labeled agents receive ingress traffic"
+    Agent node pools that should expose Traefik need the `svccontroller.k3s.cattle.io/enablelb=true` label. The example environment uses that label so Ingress status, and therefore DNS, contains only agent pool IPs.
 
 ## Cloudflare proxy mode
 

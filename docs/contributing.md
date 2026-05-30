@@ -10,7 +10,8 @@ infra/
 ├── modules/                       # Plain Terraform modules (the "how")
 │   ├── cluster/                   # kube-hetzner + reads secrets from R2 + uploads kubeconfig
 │   ├── acme/                      # Let's Encrypt ClusterIssuer
-│   ├── cloudflare-dns/            # Cloudflare A records (e.g. argocd_host -> node IPs)
+│   ├── external-dns/              # ExternalDNS Helm release + Cloudflare records from Ingress
+│   ├── cloudflare-dns/            # Deprecated v0.1.0 DNS cleanup unit
 │   ├── argocd/                    # Argo CD Helm release + Traefik Ingress
 │   ├── cnpg/                      # CloudNativePG operator
 │   ├── harbor/                    # Harbor (container registry) Helm release + Traefik Ingress
@@ -29,10 +30,10 @@ The mental model is: `infra/modules/<name>/` is the **how** (reusable, env-agnos
 ## Apply DAG
 
 ```
-cluster → acme, cloudflare-dns, cnpg → argocd, signoz, harbor
+cluster → acme, external-dns, cnpg → argocd, signoz, harbor
 ```
 
-Things to the right of an arrow run in parallel once everything to their left has applied. `cluster` is always first (it produces the kubeconfig). To see the live graph for an environment:
+Things to the right of an arrow run in parallel once everything to their left has applied. `cluster` is always first (it produces the kubeconfig). The deprecated `cloudflare-dns` unit is kept for v0.2.0 upgrades and depends on `external-dns` so old v0.1.0 records can be removed after the new controller is running. To see the live graph for an environment:
 
 ```bash
 cd infra/dev && terragrunt dag graph
@@ -71,6 +72,7 @@ If you add a unit, update the DAG description above and check `terragrunt dag gr
 
 - `enable_klipper_metal_lb = true` (no Hetzner LB cost). Don't switch to a managed LB without a reason.
 - Cloudflare DNS records stay `proxied = false` while HTTP-01 is the ACME solver.
+- Ingress-capable agent pools keep the `svccontroller.k3s.cattle.io/enablelb=true` label so DNS publishes agent IPs only.
 - `firewall_ssh_source` / `firewall_kube_api_source` default to open; tighten per env in `env.hcl`, never widen in modules.
 - New egress / ingress: prefer in-cluster (`ClusterIP` + Traefik `Ingress`) over `LoadBalancer` / `NodePort`.
 

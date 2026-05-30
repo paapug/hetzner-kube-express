@@ -83,6 +83,9 @@ nav:
       - Harbor: harbor.md
   - Cluster wiring:
       - ACME (Let's Encrypt): acme.md
-      - Cloudflare DNS: cloudflare-dns.md
+      - ExternalDNS: external-dns.md
+      - (deprecated) Cloudflare DNS: cloudflare-dns.md
+  - Releases:
+      - Changelog and upgrades: changelog.md
 
 

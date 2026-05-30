@@ -7,8 +7,8 @@
 ```mermaid
 flowchart LR
   user["Browser / kubectl / docker"]
-  dns["Cloudflare DNS"]
-  nodes["Hetzner worker nodes<br/>(Klipper exposes Traefik)"]
+  dns["Cloudflare DNS<br/>(via ExternalDNS)"]
+  nodes["Hetzner agent nodes<br/>(Klipper exposes Traefik)"]
   traefik["Traefik<br/>(ingress + TLS)"]
   apps["Argo CD · SigNoz · Harbor · your apps"]
   cert["cert-manager<br/>(Let's Encrypt)"]
@@ -93,11 +93,11 @@ A single `terragrunt run --all apply` from an environment folder provisions the 
 
     S3-compatible storage for Terraform state and per-env `secrets.json` (one bucket, both jobs).
 
--   :material-dns: __[Cloudflare DNS](https://developers.cloudflare.com/dns/)__
+-   :material-dns: __[ExternalDNS + Cloudflare DNS](external-dns.md)__
 
     ---
 
-    A records wired automatically to the cluster's worker node pool.
+    Ingress-driven A records wired automatically to the cluster's agent node pool.
 
 -   :material-graph: __[Terragrunt](https://terragrunt.gruntwork.io/)__
 

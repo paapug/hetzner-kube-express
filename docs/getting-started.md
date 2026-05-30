@@ -39,7 +39,7 @@ You need:
     aws_secret_access_key = <r2-secret-access-key>
     ```
 
-4. Set `cloudflare_zone_id` in [`infra/dev/env.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/dev/env.hcl) to the zone ID of the domain you control.
+4. Set `cloudflare.zone_id` and `cloudflare.domain` in [`infra/dev/env.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/dev/env.hcl) for the domain this environment should manage.
 
 5. Set `cert_manager.acme_email` in [`infra/dev/env.hcl`](https://github.com/paapug/hetzner-kube-express/blob/main/infra/dev/env.hcl) to the email address to use for Let's Encrypt certificates.
 

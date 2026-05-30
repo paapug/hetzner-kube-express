@@ -37,11 +37,11 @@
 
 Managed Kubernetes is great until the bill shows up. This repo gives you a startup-friendly k3s platform on Hetzner Cloud: low cost, batteries included, and plain Terraform/Terragrunt under the hood.
 
-It is mostly curated wiring around excellent building blocks: [kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner), [Cloudflare DNS](https://developers.cloudflare.com/dns/), [Cloudflare R2](https://developers.cloudflare.com/r2/), [Traefik](https://traefik.io/), [cert-manager](https://cert-manager.io/), [Argo CD](https://argo-cd.readthedocs.io/), [SigNoz](https://signoz.io/), [Harbor](https://goharbor.io/), and [CloudNativePG](https://cloudnative-pg.io/).
+It is mostly curated wiring around excellent building blocks: [kube-hetzner](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner), [ExternalDNS](https://kubernetes-sigs.github.io/external-dns/) with [Cloudflare DNS](https://developers.cloudflare.com/dns/), [Cloudflare R2](https://developers.cloudflare.com/r2/), [Traefik](https://traefik.io/), [cert-manager](https://cert-manager.io/), [Argo CD](https://argo-cd.readthedocs.io/), [SigNoz](https://signoz.io/), [Harbor](https://goharbor.io/), and [CloudNativePG](https://cloudnative-pg.io/).
 
 ## What's Inside
 
-- **Ingress, TLS, and DNS:** Traefik + cert-manager + Cloudflare records, exposed on every worker by k3s Klipper, with no paid load balancers.
+- **Ingress, TLS, and DNS:** Traefik + cert-manager + ExternalDNS-managed Cloudflare records, exposed on agent nodes by k3s Klipper, with no paid load balancers.
 - **GitOps:** [Argo CD](https://paapug.github.io/hetzner-kube-express/argocd/) installed through Helm and exposed through Traefik.
 - **Observability:** [SigNoz](https://paapug.github.io/hetzner-kube-express/signoz/) with Kubernetes infrastructure collection and imported dashboards.
 - **Container registry:** [Harbor](https://paapug.github.io/hetzner-kube-express/harbor/) with bundled Trivy image scanning.
@@ -73,7 +73,7 @@ The first run builds a MicroOS snapshot if the Hetzner project does not already 
 
 - R2 access is powerful. Anyone who can read `secrets.json` can retrieve infrastructure credentials and the cluster SSH key.
 - Cloudflare ingress records stay unproxied while cert-manager uses HTTP-01. Flip proxy mode only if you also move certificates to DNS-01.
-- DNS round-robin is cheap, not magic. It does not health-check worker nodes.
+- DNS round-robin is cheap, not magic. It does not health-check agent nodes.
 - SigNoz and Harbor are useful but not tiny. On small nodes, add worker capacity before tuning Helm values blind.
 
 ## Roadmap
@@ -83,8 +83,8 @@ The first run builds a MicroOS snapshot if the Hetzner project does not already 
 - [x] SigNoz observability stack
 - [x] Harbor container registry
 - [x] Documentation that does not make you sad
+- [x] ExternalDNS
 - [ ] Authentik / Zitadel
-- [ ] External DNS
 - [ ] Allow additional Helm values to be passed to modules
 - [ ] CI tests
 - [ ] Modular cluster provider
