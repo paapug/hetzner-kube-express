@@ -87,7 +87,7 @@ The first run builds a MicroOS snapshot if the Hetzner project does not already 
 - [x] Documentation that does not make you sad
 - [x] ExternalDNS
 - [ ] Authentik / Zitadel
-- [ ] Allow additional Helm values to be passed to modules
+- [x] Allow additional Helm values to be passed to modules
 - [ ] CI tests
 - [ ] Modular cluster provider
 

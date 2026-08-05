@@ -49,6 +49,7 @@ A unit = `infra/modules/<name>/` (TF) + `infra/<env>/<name>/terragrunt.hcl` (wir
 Module side (`infra/modules/<name>/`):
 - `versions.tf` — pin `required_version` and every provider (match versions used by sibling modules).
 - `variables.tf` — one variable per input. Mark secrets `sensitive = true`. Group: cluster access (`kubeconfig`), feature config (`*_host`, `*_chart_version`, ...), R2 (`r2_account_id`, `r2_bucket`, `r2_aws_profile`, `r2_<name>_key`).
+- Helm modules expose optional `helm_set` and `helm_set_sensitive` `map(string)` variables. A module with multiple releases prefixes the extra pairs with the release name.
 - `providers.tf` — if the module talks to the cluster, decode `var.kubeconfig` once and wire `kubernetes` + `helm` from it (don't take a kubeconfig file path).
 - `r2.tf` — if the module reads/writes R2, declare `provider "aws" { alias = "r2" ... }` (copy from `argocd/r2.tf`). Use `etag = md5(...)` on `aws_s3_object` so generated content uploads on change.
 - `outputs.tf` — expose only what downstream units need. Mark secrets `sensitive`.
@@ -59,6 +60,7 @@ Terragrunt side (`infra/<env>/<name>/terragrunt.hcl`):
 - `terraform { source = "${get_repo_root()}/infra/modules/<name>" }`.
 - One `dependency "<other_unit>"` per upstream output you consume. Always provide realistic `mock_outputs` + `mock_outputs_allowed_terraform_commands = ["validate", "plan", "init", "destroy"]`.
 - `inputs = {}`: feature config from `local.env.locals.<name>.*`, cluster/issuer/etc. from `dependency.*.outputs.*`, R2 from `include.root.locals.r2_*`.
+- Wire Helm maps with `try(local.env.locals.<name>.helm_set, {})` so existing environment files remain valid.
 - New R2 object keys go in `infra/root.hcl` as `r2_<name>_<thing>_key = "secrets/${local.environment}/<name>.json"`, then read via `include.root.locals.*`.
 - New env config goes under `local.<name> = { ... }` in each `infra/<env>/env.hcl`.
 - After adding the unit, update the apply DAG note above and confirm `terragrunt dag graph` from the env folder shows it in the right place.

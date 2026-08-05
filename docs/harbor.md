@@ -21,6 +21,15 @@ If Harbor is already installed, destroy the `harbor` unit before flipping the fl
 !!! warning
     Destroying the `harbor` unit deletes the Harbor namespace and its five [persistent volumes](persistent-volumes.md). Any pushed images, Helm charts, vulnerability databases, and bundled Postgres/Redis state are lost unless you have backed them up elsewhere.
 
+## Tune chart values
+
+Use `helm_set` in the Harbor block in `infra/<env>/env.hcl` for chart values
+that the module does not expose directly. Use `helm_set_sensitive` for values
+that must stay out of plan and apply output.
+
+See [Helm value overrides](helm-values.md) for examples, limits, and the required
+git hook.
+
 ## Resize the persistent volumes
 
 Harbor's chart keeps state on five PersistentVolumeClaims. Their sizes are exposed in `infra/<env>/env.hcl` so each environment can tune capacity without forking the module.

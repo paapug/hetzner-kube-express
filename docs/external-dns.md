@@ -55,6 +55,16 @@ external_dns = {
 
 Hostnames for bundled services (`argocd.host`, `signoz.host`, `harbor.host`) still live in their per-service blocks. Those modules create Ingresses, and ExternalDNS creates the matching Cloudflare records from those Ingresses.
 
+## Tune chart values
+
+Use `helm_set` in the ExternalDNS block in `infra/<env>/env.hcl` for chart
+values that the module does not expose directly. Use `helm_set_sensitive` for
+values that must stay out of plan and apply output.
+
+Modify the provider, domain and zone filters, TXT ownership, token source, or
+Cloudflare proxy mode only when you understand the DNS and certificate effects.
+See [Helm value overrides](helm-values.md) for the related wiring.
+
 ## Adding an app hostname
 
 Create a normal Kubernetes `Ingress` for the hostname you want. ExternalDNS sees the Ingress and creates the Cloudflare record for it.

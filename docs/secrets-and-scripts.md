@@ -121,11 +121,17 @@ The script reads `secrets.json` from R2 and writes the key pair under `infra/<en
 
 ## Other helper scripts
 
-`install-git-hooks.sh` points this clone at the repo's git hooks. The pre-commit hook anonymizes staged copies of `infra/root.hcl` and `infra/<env>/env.hcl` so real account IDs, domains, and similar local values do not land in git history.
+`install-git-hooks.sh` points this clone at the repo's git hooks. The pre-commit hook anonymizes staged copies of `infra/root.hcl` and `infra/<env>/env.hcl` so real account IDs, domains, and similar local values do not land in git history. It also replaces values inside `helm_set_sensitive` with `REPLACE_WITH_HELM_SECRET`.
 
 ```bash
 infra/_scripts/install-git-hooks.sh
 ```
+
+The hook changes only the staged copy. Your worktree keeps the real values.
+Without this hook, git can commit values from `helm_set_sensitive`. Terraform
+also stores those values in R2 state, and Helm stores them in its in-cluster
+release Secret. See [Helm value overrides](helm-values.md) before you use this
+map.
 
 `trust-le-staging.sh` is macOS-only. It can add or remove the Let's Encrypt staging roots from your keychain, which is useful when an environment uses staging certificates.
 

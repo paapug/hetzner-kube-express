@@ -101,7 +101,7 @@ A unit = `infra/modules/<name>/` (Terraform) + `infra/<env>/<name>/terragrunt.hc
 | File | What goes in it |
 |------|-----------------|
 | `versions.tf` | Pin `required_version` and every provider (match sibling modules). |
-| `variables.tf` | One variable per input. Group: cluster access (`kubeconfig`), feature config (`*_host`, `*_chart_version`, ...), R2 (`r2_account_id`, `r2_bucket`, `r2_aws_profile`, `r2_<name>_key`). Mark secrets `sensitive = true`. |
+| `variables.tf` | One variable per input. Group: cluster access (`kubeconfig`), feature config (`*_host`, `*_chart_version`, ...), R2 (`r2_account_id`, `r2_bucket`, `r2_aws_profile`, `r2_<name>_key`). Mark secrets `sensitive = true`. Helm modules also expose optional `helm_set` and `helm_set_sensitive` `map(string)` variables. |
 | `providers.tf` | If the module talks to the cluster, decode `var.kubeconfig` once and wire `kubernetes` + `helm` from it. |
 | `outputs.tf` | Expose only what downstream units need. Mark secrets `sensitive`. |
 
@@ -112,6 +112,7 @@ A unit = `infra/modules/<name>/` (Terraform) + `infra/<env>/<name>/terragrunt.hc
 - `terraform { source = "${get_repo_root()}/infra/modules/<name>" }`.
 - One `dependency "<other_unit>"` per upstream output you consume. Always provide realistic `mock_outputs` + `mock_outputs_allowed_terraform_commands`.
 - `inputs = {}`: feature config from `local.env.locals.<name>.*`, cluster/issuer/etc. from `dependency.*.outputs.*`, R2 from `include.root.locals.r2_*`.
+- Wire Helm maps through `try(local.env.locals.<name>.helm_set, {})` and the matching sensitive input. Prefix the pair with the release name if the module installs more than one chart.
 
 **Threading it through R2 / env.hcl:**
 
