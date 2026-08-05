@@ -1,5 +1,10 @@
 # Per-environment locals (non-secret). R2 defaults live in infra/root.hcl;
 # override per-env only when this env needs different values.
+#
+# Every service block takes optional helm_set / helm_set_sensitive maps of Helm
+# dot-path keys, applied over the module's own values. The pre-commit hook
+# redacts helm_set_sensitive values, so they stay out of git. See
+# docs/helm-values.md.
 
 locals {
   cluster_name = "dev"
@@ -16,6 +21,9 @@ locals {
     enabled       = true
     chart_version = "1.21.1" # https://github.com/kubernetes-sigs/external-dns/releases (appVersion 0.21.0)
     namespace     = "external-dns"
+
+    # helm_set           = { "interval" = "1m" }
+    # helm_set_sensitive = { "some.chart.key" = "REPLACE_WITH_HELM_SECRET" }
   }
 
   hetzner = {
@@ -59,11 +67,17 @@ locals {
     enabled       = true
     chart_version = "9.5.15"
     host          = "argocd.${local.cloudflare.domain}"
+
+    # helm_set           = { "server.replicas" = "2" }
+    # helm_set_sensitive = { "some.chart.key" = "REPLACE_WITH_HELM_SECRET" }
   }
 
   cnpg = {
     enabled       = true
     chart_version = "0.28.2"
+
+    # helm_set           = { "replicaCount" = "2" }
+    # helm_set_sensitive = { "some.chart.key" = "REPLACE_WITH_HELM_SECRET" }
   }
 
   signoz = {
@@ -78,6 +92,11 @@ locals {
       zookeeper  = "8Gi"
       signoz     = "1Gi"
     }
+
+    # helm_set targets the signoz chart; k8s_infra_helm_set targets k8s-infra.
+    # helm_set           = { "signoz.replicaCount" = "2" }
+    # helm_set_sensitive = { "some.chart.key" = "REPLACE_WITH_HELM_SECRET" }
+    # k8s_infra_helm_set = { "presets.logsCollection.enabled" = "false" }
   }
 
   harbor = {
@@ -92,6 +111,9 @@ locals {
       redis      = "2Gi"
       trivy      = "10Gi"
     }
+
+    # helm_set           = { "trivy.enabled" = "false" }
+    # helm_set_sensitive = { "some.chart.key" = "REPLACE_WITH_HELM_SECRET" }
   }
 
   # Optional R2 overrides (see root.hcl):

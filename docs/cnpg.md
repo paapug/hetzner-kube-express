@@ -21,6 +21,15 @@ If CNPG is already installed, destroy any `Cluster` resources you created, then 
 !!! danger "Destroying the operator does not delete databases"
     The CNPG operator is cluster-scoped; the bundled chart installs only the operator workload into `cnpg-system`. `Cluster` resources, their pods, and their backing `PersistentVolumeClaim`s live in whatever namespace you put them. Tear those down explicitly, or they survive an operator destroy and remain unmanaged.
 
+## Tune chart values
+
+Use `helm_set` in the CNPG block in `infra/<env>/env.hcl` for chart values that
+the module does not expose directly. Use `helm_set_sensitive` for values that
+must stay out of plan and apply output.
+
+See [Helm value overrides](helm-values.md) for examples, limits, and the required
+git hook.
+
 ## Your first Cluster
 
 A minimal three-instance Postgres cluster, backed by the Hetzner storage class:

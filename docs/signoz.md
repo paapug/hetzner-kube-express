@@ -22,6 +22,15 @@ If SigNoz is already installed, destroy the `signoz` unit before flipping the fl
 !!! warning
     Destroying the `signoz` unit deletes the SigNoz namespace and its [persistent volumes](persistent-volumes.md). Any telemetry stored in SigNoz is lost unless you have backed it up elsewhere.
 
+## Tune chart values
+
+Use `helm_set` in the SigNoz block in `infra/<env>/env.hcl` for extra values for
+the `signoz` chart. Use `k8s_infra_helm_set` for the separate `k8s-infra` chart.
+Both maps have a matching sensitive form.
+
+See [Helm value overrides](helm-values.md) for examples, limits, and the required
+git hook.
+
 ## Resize the persistent volumes
 
 SigNoz keeps state on three PersistentVolumeClaims. Their sizes are exposed in `infra/<env>/env.hcl` so each environment can tune capacity without forking the module.

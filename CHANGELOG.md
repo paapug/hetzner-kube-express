@@ -4,6 +4,21 @@ All notable changes to this project will be documented here.
 
 This project is still early, so the changelog is intentionally human-sized: what changed, why it matters, and what to watch out for.
 
+## v0.3.0 - Configurable Helm values
+
+Released: 2026-08-05
+
+### Added
+
+- Every bundled Helm release now accepts `helm_set` and
+  `helm_set_sensitive` maps from `infra/<env>/env.hcl`.
+- SigNoz also accepts `k8s_infra_helm_set` and
+  `k8s_infra_helm_set_sensitive` for its separate `k8s-infra` release.
+- The pre-commit hook redacts staged `helm_set_sensitive` values while keeping
+  the local worktree unchanged.
+
+This change is additive. Existing environments do not need an upgrade action.
+
 ## v0.2.0 - ExternalDNS takes over Cloudflare records
 
 Released: 2026-05-30

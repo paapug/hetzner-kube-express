@@ -57,6 +57,11 @@ inputs = {
   pvc_sizes               = local.env.locals.signoz.pvc_sizes
   deployment_environment  = local.env.locals.signoz.deployment_environment
 
+  helm_set                     = try(local.env.locals.signoz.helm_set, {})
+  helm_set_sensitive           = try(local.env.locals.signoz.helm_set_sensitive, {})
+  k8s_infra_helm_set           = try(local.env.locals.signoz.k8s_infra_helm_set, {})
+  k8s_infra_helm_set_sensitive = try(local.env.locals.signoz.k8s_infra_helm_set_sensitive, {})
+
   cluster_name = local.env.locals.cluster_name
   admin_email  = local.env.locals.operator_email
 }

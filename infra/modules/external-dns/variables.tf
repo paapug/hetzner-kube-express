@@ -36,6 +36,19 @@ variable "proxied" {
   default     = false
 }
 
+variable "helm_set" {
+  type        = map(string)
+  description = "Extra chart values as Helm dot-path keys, applied over this module's values. Same semantics as `helm --set`."
+  default     = {}
+}
+
+variable "helm_set_sensitive" {
+  type        = map(string)
+  description = "Same as helm_set, but values are kept out of plan and apply output."
+  default     = {}
+  sensitive   = true
+}
+
 variable "r2_account_id" {
   type        = string
   description = "Cloudflare account ID. Used to build the R2 S3 endpoint host for reading secrets.json."

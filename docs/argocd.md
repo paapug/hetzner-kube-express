@@ -21,6 +21,15 @@ If Argo CD is already installed, destroy the `argocd` unit before flipping the f
 !!! warning
     Destroying the `argocd` unit deletes the Argo CD namespace and everything in it: registered repos, applications, projects, and accounts. The cluster keeps running, but anything Argo CD was syncing stops being reconciled.
 
+## Tune chart values
+
+Use `helm_set` in the Argo CD block in `infra/<env>/env.hcl` for chart values
+that the module does not expose directly. Use `helm_set_sensitive` for values
+that must stay out of plan and apply output.
+
+See [Helm value overrides](helm-values.md) for examples, limits, and the required
+git hook.
+
 ## Access the UI
 
 The UI is exposed through Traefik at the Argo CD host configured in `env.hcl`.

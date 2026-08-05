@@ -74,6 +74,7 @@ nav:
       - How it fits together: how-it-fits-together.md
       - Secrets and helper scripts: secrets-and-scripts.md
       - Adding environments: adding-environments.md
+      - Helm value overrides: helm-values.md
       - Ingress: ingress.md
       - Persistent Volumes: persistent-volumes.md
       - Troubleshooting: troubleshooting.md

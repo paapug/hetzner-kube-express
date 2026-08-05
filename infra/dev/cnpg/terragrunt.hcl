@@ -30,4 +30,7 @@ inputs = {
   kubeconfig         = dependency.cluster.outputs.kubeconfig
   cnpg_chart_version = local.env.locals.cnpg.chart_version
   cnpg_namespace     = try(local.env.locals.cnpg.namespace, "cnpg-system")
+
+  helm_set           = try(local.env.locals.cnpg.helm_set, {})
+  helm_set_sensitive = try(local.env.locals.cnpg.helm_set_sensitive, {})
 }

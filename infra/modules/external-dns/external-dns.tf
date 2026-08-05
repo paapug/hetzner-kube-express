@@ -34,6 +34,21 @@ resource "helm_release" "external_dns" {
     api_token_secret_name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
   })]
 
+  # Applied after `values`, so these win over the template above.
+  set = [
+    for name, value in var.helm_set : {
+      name  = name
+      value = value
+    }
+  ]
+
+  set_sensitive = [
+    for name, value in var.helm_set_sensitive : {
+      name  = name
+      value = value
+    }
+  ]
+
   atomic          = true
   cleanup_on_fail = true
   wait            = true

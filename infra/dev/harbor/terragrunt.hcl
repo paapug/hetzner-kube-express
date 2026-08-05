@@ -55,5 +55,8 @@ inputs = {
   storage_class        = local.env.locals.harbor.storage_class
   pvc_sizes            = local.env.locals.harbor.pvc_sizes
 
+  helm_set           = try(local.env.locals.harbor.helm_set, {})
+  helm_set_sensitive = try(local.env.locals.harbor.helm_set_sensitive, {})
+
   admin_email = local.env.locals.operator_email
 }

@@ -76,3 +76,29 @@ variable "admin_org_name" {
   description = "Initial organization name shown in SigNoz. Defaults to the cluster name."
   default     = ""
 }
+
+variable "helm_set" {
+  type        = map(string)
+  description = "Extra signoz chart values as Helm dot-path keys, applied over this module's values. Same semantics as `helm --set`."
+  default     = {}
+}
+
+variable "helm_set_sensitive" {
+  type        = map(string)
+  description = "Same as helm_set, but values are kept out of plan and apply output."
+  default     = {}
+  sensitive   = true
+}
+
+variable "k8s_infra_helm_set" {
+  type        = map(string)
+  description = "Extra k8s-infra chart values as Helm dot-path keys, applied over this module's values."
+  default     = {}
+}
+
+variable "k8s_infra_helm_set_sensitive" {
+  type        = map(string)
+  description = "Same as k8s_infra_helm_set, but values are kept out of plan and apply output."
+  default     = {}
+  sensitive   = true
+}
