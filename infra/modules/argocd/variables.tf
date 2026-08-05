@@ -19,3 +19,16 @@ variable "acme_issuer_name" {
   type        = string
   description = "Name of the cert-manager ClusterIssuer to annotate on the Argo CD Ingress (typically dependency.acme.outputs.issuer_name)."
 }
+
+variable "helm_set" {
+  type        = map(string)
+  description = "Extra chart values as Helm dot-path keys, applied over this module's values. Same semantics as `helm --set`."
+  default     = {}
+}
+
+variable "helm_set_sensitive" {
+  type        = map(string)
+  description = "Same as helm_set, but values are kept out of plan and apply output."
+  default     = {}
+  sensitive   = true
+}

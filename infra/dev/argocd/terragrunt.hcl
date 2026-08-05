@@ -51,4 +51,7 @@ inputs = {
   acme_issuer_name     = dependency.acme.outputs.issuer_name
   argocd_chart_version = local.env.locals.argocd.chart_version
   argocd_host          = local.env.locals.argocd.host
+
+  helm_set           = try(local.env.locals.argocd.helm_set, {})
+  helm_set_sensitive = try(local.env.locals.argocd.helm_set_sensitive, {})
 }

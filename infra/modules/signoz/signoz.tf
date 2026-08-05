@@ -24,6 +24,21 @@ resource "helm_release" "signoz" {
     })
   ]
 
+  # Applied after `values`, so these win over the template above.
+  set = [
+    for name, value in var.helm_set : {
+      name  = name
+      value = value
+    }
+  ]
+
+  set_sensitive = [
+    for name, value in var.helm_set_sensitive : {
+      name  = name
+      value = value
+    }
+  ]
+
   atomic          = true
   cleanup_on_fail = true
   wait            = true
@@ -43,6 +58,20 @@ resource "helm_release" "k8s_infra" {
       deployment_environment  = var.deployment_environment
       otel_collector_endpoint = local.otel_collector_endpoint
     })
+  ]
+
+  set = [
+    for name, value in var.k8s_infra_helm_set : {
+      name  = name
+      value = value
+    }
+  ]
+
+  set_sensitive = [
+    for name, value in var.k8s_infra_helm_set_sensitive : {
+      name  = name
+      value = value
+    }
   ]
 
   atomic          = true

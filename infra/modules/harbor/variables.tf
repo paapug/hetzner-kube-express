@@ -36,6 +36,19 @@ variable "admin_email" {
   description = "Operator email surfaced as Harbor's admin contact. Wired from the env-level operator_email."
 }
 
+variable "helm_set" {
+  type        = map(string)
+  description = "Extra chart values as Helm dot-path keys, applied over this module's values. Same semantics as `helm --set`."
+  default     = {}
+}
+
+variable "helm_set_sensitive" {
+  type        = map(string)
+  description = "Same as helm_set, but values are kept out of plan and apply output."
+  default     = {}
+  sensitive   = true
+}
+
 variable "pvc_sizes" {
   type = object({
     registry   = string

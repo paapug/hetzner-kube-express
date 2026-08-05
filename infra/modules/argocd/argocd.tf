@@ -13,6 +13,21 @@ resource "helm_release" "argocd" {
 
   values = [file("${path.module}/values/argocd-values.yaml")]
 
+  # Applied after `values`, so these win over the file above.
+  set = [
+    for name, value in var.helm_set : {
+      name  = name
+      value = value
+    }
+  ]
+
+  set_sensitive = [
+    for name, value in var.helm_set_sensitive : {
+      name  = name
+      value = value
+    }
+  ]
+
   atomic          = true
   cleanup_on_fail = true
   wait            = true

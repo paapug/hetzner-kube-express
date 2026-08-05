@@ -40,6 +40,9 @@ inputs = {
   cloudflare_zone_id = local.env.locals.cloudflare.zone_id
   txt_owner_id       = local.env.locals.cluster_name
 
+  helm_set           = try(local.env.locals.external_dns.helm_set, {})
+  helm_set_sensitive = try(local.env.locals.external_dns.helm_set_sensitive, {})
+
   r2_account_id  = include.root.locals.r2_account_id
   r2_bucket      = include.root.locals.r2_bucket
   r2_secrets_key = include.root.locals.r2_secrets_key
